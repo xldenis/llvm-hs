@@ -29,6 +29,10 @@ foreign import ccall unsafe "LLVM_Hs_IsAMetadataOperand" isAMetadataOperand ::
 foreign import ccall unsafe "LLVM_Hs_IsADILocation" isADILocation ::
   Ptr MDNode -> IO (Ptr DILocation)
 
+{- Ideally this would allow for a lookup of the exact subclass rather than having to check each one
+   individually. However, I don't know how to access the class "Kinds" that contain the actual Id
+   of each individual class.
+-}
 foreign import ccall unsafe "LLVM_Hs_GetMetadataClassId" getMetadataClassId ::
   Ptr MDNode -> IO (CUInt)
 
