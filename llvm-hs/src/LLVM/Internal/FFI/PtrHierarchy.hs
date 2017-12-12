@@ -99,6 +99,31 @@ data MDValue
 
 instance ChildOf Metadata MDValue
 
+-- | https://llvm.org/doxygen/classllvm_1_1DIExpression.html
+data DIExpression
+
+instance ChildOf MDNode DIExpression
+
+-- | https://llvm.org/doxygen/classllvm_1_1DILocation.html
+data DILocation
+
+instance ChildOf MDNode DILocation
+
+-- | https://llvm.org/doxygen/classllvm_1_1DINode.html
+data DINode
+
+instance ChildOf MDNode DINode
+
+-- | https://llvm.org/doxygen/classllvm_1_1DIScope.html
+data DIScope
+
+instance ChildOf DINode DIScope
+
+-- | https://llvm.org/doxygen/classllvm_1_1DILocalScope.html
+data DILocalScope
+
+instance ChildOf DIScope DILocalScope
+
 -- | <http://llvm.org/doxygen/classllvm_1_1NamedMDNode.html>
 data NamedMetadata
 

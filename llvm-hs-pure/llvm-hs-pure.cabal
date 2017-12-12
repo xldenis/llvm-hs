@@ -73,6 +73,7 @@ library
     LLVM.AST.Instruction
     LLVM.AST.IntegerPredicate
     LLVM.AST.Linkage
+    LLVM.AST.Metadata
     LLVM.AST.Name
     LLVM.AST.Operand
     LLVM.AST.RMWOperation

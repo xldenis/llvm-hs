@@ -26,6 +26,21 @@ foreign import ccall unsafe "LLVM_Hs_IsAMDValue" isAMDValue ::
 foreign import ccall unsafe "LLVM_Hs_IsAMetadataOperand" isAMetadataOperand ::
   Ptr Value -> IO (Ptr MetadataAsVal)
 
+foreign import ccall unsafe "LLVM_Hs_IsADILocation" isADILocation ::
+  Ptr MDNode -> IO (Ptr DILocation)
+
+foreign import ccall unsafe "LLVM_Hs_GetMetadataClassId" getMetadataClassId ::
+  Ptr MDNode -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_Hs_DILocationGetLine" getLine ::
+  Ptr DILocation -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_Hs_DILocationGetColumn" getColumn ::
+  Ptr DILocation -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_HS_DILocationGetScope" getScope ::
+  Ptr DILocation -> IO (Ptr DILocalScope)
+
 foreign import ccall unsafe "LLVM_Hs_GetMDValue" getMDValue ::
   Ptr MDValue -> IO (Ptr Value)
 
