@@ -6,6 +6,7 @@
 #include "llvm/Config/llvm-config.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Metadata.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm-c/Core.h"
 
 using namespace llvm;
@@ -146,5 +147,27 @@ void LLVM_Hs_MetadataReplaceAllUsesWith(LLVMMetadataRef md, LLVMMetadataRef repl
     MDNode::deleteTemporary(Node);
 }
 
+LLVMMetadataRef LLVM_Hs_IsADILocation(LLVMMetadataRef md) {
+    if (isa<DILocation>(unwrap(md))) {
+        return md;
+    }
+    return nullptr;
+}
+
+unsigned LLVM_Hs_GetMetadataClassId(LLVMMetadataRef md) {
+    return (unwrap(md))->getMetadataID();
+}
+
+unsigned LLVM_Hs_DILocationGetLine(DILocation *md) {
+    return md->getLine();
+}
+
+unsigned LLVM_Hs_DILocationGetColumn(DILocation *md) {
+    return md->getColumn();
+}
+
+DIScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
+    return md->getScope();
+}
 }
 

@@ -30,7 +30,7 @@ import qualified LLVM.AST as A
 instance DecodeM DecodeAST A.Operand (Ptr FFI.Value) where
   decodeM v = do
     c <- liftIO $ FFI.isAConstant v
-    if (c /= nullPtr) 
+    if (c /= nullPtr)
      then
       return A.ConstantOperand `ap` decodeM c
      else
@@ -53,6 +53,20 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
                           if (v /= nullPtr)
                               then A.MDValue <$> decodeM v
                               else fail "Metadata was not one of [MDString, MDValue, MDNode]"
+
+instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
+  decodeM mdn = do
+    s <- liftIO $ FFI.isADILocation mdn
+    if (s /= nullPtr)
+      then A.DILocation
+        <$> (liftIO $ fromIntegral <$> FFI.getLine s)
+        <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
+        <*> (decodeM =<< (liftIO $ FFI.getScope s))
+      else fail "omg"
+
+instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
+  -- decodeM ls = do
+
 
 instance DecodeM DecodeAST A.CallableOperand (Ptr FFI.Value) where
   decodeM v = do
