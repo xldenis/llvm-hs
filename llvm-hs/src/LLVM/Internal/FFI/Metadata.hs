@@ -34,7 +34,7 @@ foreign import ccall unsafe "LLVM_Hs_IsADILocation" isADILocation ::
    of each individual class.
 -}
 foreign import ccall unsafe "LLVM_Hs_GetMetadataClassId" getMetadataClassId ::
-  Ptr MDNode -> IO (CUInt)
+  Ptr MDNode -> IO (MDSubclassID)
 
 foreign import ccall unsafe "LLVM_Hs_DILocationGetLine" getLine ::
   Ptr DILocation -> IO (CUInt)
