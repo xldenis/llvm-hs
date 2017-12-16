@@ -24,7 +24,22 @@ data DINode
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DIScope
-  = DICompileUnit DIFile ShortByteString Bool ShortByteString Word32 ShortByteString Word32 MDNode MDNode MDNode MDNode MDNode Word64
+-- | https://llvm.org/docs/LangRef.html#dicompileunit
+  = DICompileUnit
+    { scopeFile :: DIFile
+    , scopeProducer :: ShortByteString
+    , scopeOptimized :: Bool
+    , scopeFlags :: ShortByteString
+    , scopeRuntimeVersion :: Word32
+    , scopeDebugFileName :: ShortByteString
+    , scopeEmissionKind :: Word32
+    , scopeEnumTypes :: MDNode
+    , scopeRetainedTypes :: MDNode
+    , scopeGlobalVariables :: MDNode
+    , scopeImportedEntitites :: MDNode
+    , scopeMacros :: MDNode
+    , scopeDWOId :: Word64
+    }
   | DIFile DIFile
   | DILocalScope DILocalScope
   -- | DIModule Name DIScope
@@ -32,22 +47,54 @@ data DIScope
   | DIType DIType
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
-data DIFile = File Name Name ChecksumKind Name
-  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+-- | https://llvm.org/docs/LangRef.html#difile
+data DIFile = File
+  { filename :: ShortByteString
+  , directory :: ShortByteString
+  , checksumKind :: ChecksumKind
+  , checksum :: ShortByteString
+  } deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data ChecksumKind = None | MD5 | SHA1 | Last
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DILocalScope
   = DILexicalBlockBase DILexicalBlockBase
-  | DISubprogram Name Name DIScope DIFile Word32 DIType Bool DIType Virtuality Word32 DIFlag {- ? -} Bool MDNode MDNode MDNode MDNode MDNode MDNode {- Should be Metada -}
+  -- | https://llvm.org/docs/LangRef.html#disubprogram
+  | DISubprogram
+    { subprogramName :: ShortByteString
+    , subprogramLinkageName :: ShortByteString
+    , subprogramScope ::  DIScope
+    , subprogramFile :: DIFile
+    , subprogramLine :: Word32
+    , subprogramType :: DIType
+    , subprogramDefinition :: Bool
+    , subprogramScopeLine :: Word32
+    , subprogramContainingType :: DIType
+    , subprogramVirtuality :: Virtuality
+    , subprogramVirtualityIndex :: Word32
+    , subprogramFlags :: DIFlag {- ? -}
+    , subprogramOptimized :: Bool
+    , subprogramUnit :: MDNode
+    , subprogramTemplateParams :: MDNode
+    , subprogramDeclaration :: MDNode
+    , subprogramVariables :: MDNode
+    , subprogramThrownTypes :: MDNode
+    } {- Should be Metada -}
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data Virtuality = MkFake
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DIType
-  = DIBasicType Name Word32 Word32 Encoding
+  -- | https://llvm.org/docs/LangRef.html#dibasictype
+  = DIBasicType
+    { typeName :: Name
+    , typeSize :: Word32
+    , typeAlign :: Word32
+    , typeEncoding :: Encoding
+    , typeTag :: Word32
+    }
   | DICompositeType Name EnumerationType DIFile Word32 Word32 Word32 [DIType] Name
   | DIDerivedType Tag DIType Word32 Word32
   | DISubroutineType [DIType]
