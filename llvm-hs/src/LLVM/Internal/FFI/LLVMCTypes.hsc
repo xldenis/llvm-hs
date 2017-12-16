@@ -28,6 +28,7 @@ import LLVM.Prelude
 #include "LLVM/Internal/FFI/Analysis.h"
 #include "LLVM/Internal/FFI/LibFunc.h"
 #include "LLVM/Internal/FFI/OrcJIT.h"
+#include "LLVM/Internal/FFI/Metadata.h"
 
 import Language.Haskell.TH.Quote
 
@@ -114,6 +115,11 @@ newtype FCmpPredicate = FCmpPredicate CUInt
 
 newtype MDKindID = MDKindID CUInt
   deriving (Storable)
+
+newtype MDSubclassID = MDSubclassID CUInt
+  deriving (Eq, Read, Show, Typeable, Data, Generic)
+#define MDSID_Rec(n) { #n, n ## Kind },
+#{inject MDNODE_SUBCLASS, MDSubclassID, MDSubclassID, mdSubclassId, MDSID_Rec}
 
 newtype FastMathFlags = FastMathFlags CUInt
   deriving (Eq, Ord, Show, Typeable, Data, Num, Bits, Generic)
