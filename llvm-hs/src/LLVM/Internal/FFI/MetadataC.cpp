@@ -13,12 +13,54 @@ using namespace llvm;
 
 extern "C" {
 
-LLVMMetadataRef LLVM_Hs_IsAMDString(LLVMMetadataRef md) {
-    if (isa<MDString>(unwrap(md))) {
-        return md;
-    }
-    return nullptr;
+#define TEMPLATE_IS_CHECK(CLASS) \
+LLVMMetadataRef LLVM_Hs_IsA##CLASS(LLVMMetadataRef md) { \
+    if (isa<CLASS>(unwrap(md))) { \
+        return md; \
+    } \
+    return nullptr; \
 }
+
+TEMPLATE_IS_CHECK(MDString)
+TEMPLATE_IS_CHECK(ValueAsMetadata)
+TEMPLATE_IS_CHECK(ConstantAsMetadata)
+TEMPLATE_IS_CHECK(LocalAsMetadata)
+TEMPLATE_IS_CHECK(DistinctMDOperandPlaceholder)
+TEMPLATE_IS_CHECK(MDNode)
+TEMPLATE_IS_CHECK(MDTuple)
+TEMPLATE_IS_CHECK(DILocation)
+TEMPLATE_IS_CHECK(DIExpression)
+TEMPLATE_IS_CHECK(DIGlobalVariableExpression)
+TEMPLATE_IS_CHECK(DINode)
+TEMPLATE_IS_CHECK(GenericDINode)
+TEMPLATE_IS_CHECK(DISubrange)
+TEMPLATE_IS_CHECK(DIEnumerator)
+TEMPLATE_IS_CHECK(DIScope)
+TEMPLATE_IS_CHECK(DIType)
+TEMPLATE_IS_CHECK(DIBasicType)
+TEMPLATE_IS_CHECK(DIDerivedType)
+TEMPLATE_IS_CHECK(DICompositeType)
+TEMPLATE_IS_CHECK(DISubroutineType)
+TEMPLATE_IS_CHECK(DIFile)
+TEMPLATE_IS_CHECK(DICompileUnit)
+TEMPLATE_IS_CHECK(DILocalScope)
+TEMPLATE_IS_CHECK(DISubprogram)
+TEMPLATE_IS_CHECK(DILexicalBlockBase)
+TEMPLATE_IS_CHECK(DILexicalBlock)
+TEMPLATE_IS_CHECK(DILexicalBlockFile)
+TEMPLATE_IS_CHECK(DINamespace)
+TEMPLATE_IS_CHECK(DIModule)
+TEMPLATE_IS_CHECK(DITemplateParameter)
+TEMPLATE_IS_CHECK(DITemplateTypeParameter)
+TEMPLATE_IS_CHECK(DITemplateValueParameter)
+TEMPLATE_IS_CHECK(DIVariable)
+TEMPLATE_IS_CHECK(DIGlobalVariable)
+TEMPLATE_IS_CHECK(DILocalVariable)
+TEMPLATE_IS_CHECK(DIObjCProperty)
+TEMPLATE_IS_CHECK(DIImportedEntity)
+TEMPLATE_IS_CHECK(DIMacroNode)
+TEMPLATE_IS_CHECK(DIMacro)
+TEMPLATE_IS_CHECK(DIMacroFile)
 
 LLVMMetadataRef LLVM_Hs_MDStringInContext(LLVMContextRef c,
                                                const char *str, unsigned slen) {
@@ -40,13 +82,6 @@ LLVMMetadataRef LLVM_Hs_MDValue(LLVMValueRef v) {
 
 LLVMValueRef LLVM_Hs_MetadataOperand(LLVMContextRef c, LLVMMetadataRef md) {
     return wrap(MetadataAsValue::get(*unwrap(c), unwrap(md)));
-}
-
-LLVMMetadataRef LLVM_Hs_IsAMDNode(LLVMMetadataRef md) {
-    if (isa<MDNode>(unwrap(md))) {
-        return md;
-    }
-    return nullptr;
 }
 
 LLVMValueRef LLVM_Hs_GetMDValue(LLVMMetadataRef md) {
@@ -145,13 +180,6 @@ void LLVM_Hs_MetadataReplaceAllUsesWith(LLVMMetadataRef md, LLVMMetadataRef repl
     auto *Node = unwrap<MDNode>(md);
     Node->replaceAllUsesWith(unwrap<Metadata>(replacement));
     MDNode::deleteTemporary(Node);
-}
-
-LLVMMetadataRef LLVM_Hs_IsADILocation(LLVMMetadataRef md) {
-    if (isa<DILocation>(unwrap(md))) {
-        return md;
-    }
-    return nullptr;
 }
 
 unsigned LLVM_Hs_GetMetadataClassId(LLVMMetadataRef md) {
