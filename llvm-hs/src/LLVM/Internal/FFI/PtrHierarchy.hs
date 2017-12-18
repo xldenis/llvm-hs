@@ -105,14 +105,19 @@ data DIExpression
 instance ChildOf MDNode DIExpression
 
 -- | https://llvm.org/doxygen/classllvm_1_1DILocation.html
-data DILocation
+-- data DILocation
 
-instance ChildOf MDNode DILocation
+-- instance ChildOf MDNode DILocation
 
 -- | https://llvm.org/doxygen/classllvm_1_1DINode.html
 data DINode
 
 instance ChildOf MDNode DINode
+
+-- | https://llvm.org/doxygen/classllvm_1_1DIMacroNode.html
+data DIMacroNode
+
+instance ChildOf MDNode DIMacroNode
 
 -- | https://llvm.org/doxygen/classllvm_1_1DIScope.html
 data DIScope
@@ -123,6 +128,31 @@ instance ChildOf DINode DIScope
 data DILocalScope
 
 instance ChildOf DIScope DILocalScope
+
+-- | https://llvm.org/doxygen/classllvm_1_1DIVariable.html
+data DIVariable
+
+instance ChildOf DINode DIVariable
+
+-- | https://llvm.org/doxygen/classllvm_1_1DITemplateParameter.html
+data DITemplateParameter
+
+instance ChildOf DINode DITemplateParameter
+
+-- | https://llvm.org/doxygen/classllvm_1_1DIType.html
+data DIType
+
+instance ChildOf DIScope DIType
+
+-- | https://llvm.org/doxygen/classllvm_1_1DILexicalBlockBase.html
+data DILexicalBlockBase
+
+instance ChildOf DILocalScope DILexicalBlockBase
+
+-- | https://llvm.org/doxygen/classllvm_1_1DIFile.html
+data DIFile
+
+instance ChildOf DIScope DIFile
 
 -- | <http://llvm.org/doxygen/classllvm_1_1NamedMDNode.html>
 data NamedMetadata

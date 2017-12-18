@@ -55,14 +55,14 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
                               else fail "Metadata was not one of [MDString, MDValue, MDNode]"
 
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
-  decodeM mdn = do
-    s <- liftIO $ FFI.isADILocation mdn
-    if (s /= nullPtr)
-      then A.DILocation
-        <$> (liftIO $ fromIntegral <$> FFI.getLine s)
-        <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
-        <*> (decodeM =<< (liftIO $ FFI.getScope s))
-      else fail "omg"
+  -- decodeM mdn = do
+  --   s <- liftIO $ FFI.isADILocation mdn
+    -- if (s /= nullPtr)
+    --   then A.DILocation
+    --     <$> (liftIO $ fromIntegral <$> FFI.getLine s)
+    --     <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
+    --     <*> (decodeM =<< (liftIO $ FFI.getScope s))
+    --   else fail "omg"
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   -- decodeM ls = do
