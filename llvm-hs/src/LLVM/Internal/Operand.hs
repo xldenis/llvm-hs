@@ -27,6 +27,49 @@ import LLVM.Internal.Metadata ()
 
 import qualified LLVM.AST as A
 
+data MetadataClassKind
+  = MDStringKind
+  | ValueAsMetadataKind
+  | ConstantAsMetadataKind
+  | LocalAsMetadataKind
+  | DistinctMDOperandPlaceholderKind
+  | MDNodeKind
+  | MDTupleKind
+  | DILocationKind
+  | DIExpressionKind
+  | DIGlobalVariableExpressionKind
+  | DINodeKind
+  | GenericDINodeKind
+  | DISubrangeKind
+  | DIEnumeratorKind
+  | DIScopeKind
+  | DITypeKind
+  | DIBasicTypeKind
+  | DIDerivedTypeKind
+  | DICompositeTypeKind
+  | DISubroutineTypeKind
+  | DIFileKind
+  | DICompileUnitKind
+  | DILocalScopeKind
+  | DISubprogramKind
+  | DILexicalBlockBaseKind
+  | DILexicalBlockKind
+  | DILexicalBlockFileKind
+  | DINamespaceKind
+  | DIModuleKind
+  | DITemplateParameterKind
+  | DITemplateTypeParameterKind
+  | DITemplateValueParameterKind
+  | DIVariableKind
+  | DIGlobalVariableKind
+  | DILocalVariableKind
+  | DIObjCPropertyKind
+  | DIImportedEntityKind
+  | DIMacroNodeKind
+  | DIMacroKind
+  | DIMacroFileKind
+deriving (Show, Eq, Enum)
+
 instance DecodeM DecodeAST A.Operand (Ptr FFI.Value) where
   decodeM v = do
     c <- liftIO $ FFI.isAConstant v
@@ -56,13 +99,15 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
 
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM mdn = do
-    s <- liftIO $ FFI.isADILocation mdn
-    if (s /= nullPtr)
-      then A.DILocation
+
+    cId <- liftIO $ FFI.getMetadataClassId mdn
+
+    case (toEnum cId) of
+      DILocation -> A.DILocation
         <$> (liftIO $ fromIntegral <$> FFI.getLine s)
         <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
         <*> (decodeM =<< (liftIO $ FFI.getScope s))
-      else fail "omg"
+      otherwise -> fail "omg"
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   -- decodeM ls = do
