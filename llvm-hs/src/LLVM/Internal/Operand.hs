@@ -1,5 +1,6 @@
 {-# LANGUAGE
-  MultiParamTypeClasses
+  MultiParamTypeClasses,
+  QuasiQuotes
   #-}
 module LLVM.Internal.Operand where
 
@@ -26,6 +27,8 @@ import LLVM.Internal.InlineAssembly ()
 import LLVM.Internal.Metadata ()
 
 import qualified LLVM.AST as A
+
+import LLVM.Internal.FFI.LLVMCTypes (mdSubclassIdP)
 
 instance DecodeM DecodeAST A.Operand (Ptr FFI.Value) where
   decodeM v = do
@@ -56,12 +59,14 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
 
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM mdn = do
-    s <- liftIO $ FFI.isADILocation mdn
-    if (s /= nullPtr)
-      then A.DILocation
+    sId <- liftIO $ FFI.getMetadataClassId mdn
+    case sId of
+      [mdSubclassIdP|DILocation|] -> A.DILocation
         <$> (liftIO $ fromIntegral <$> FFI.getLine s)
         <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
         <*> (decodeM =<< (liftIO $ FFI.getScope s))
+      otherwise -> fail "omg"
+      then
       else fail "omg"
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
