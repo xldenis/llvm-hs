@@ -66,8 +66,6 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
         <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
         <*> (decodeM =<< (liftIO $ FFI.getScope s))
       otherwise -> fail "omg"
-      then
-      else fail "omg"
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   -- decodeM ls = do
