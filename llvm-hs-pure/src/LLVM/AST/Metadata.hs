@@ -24,21 +24,43 @@ data Metadata' op
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data MDNode
-  = DIExpression -- nyi
+  = DIExpression { nodeValues :: [Word64] } -- nyi
   | DIGlobalVariableExpression -- nyi
   | DILocation Word32 Word32 DILocalScope
-  | DIMacroNode -- nyi
+  | DIMacroNode DIMacroNode -- nyi
   | DINode DINode
   -- | MDTuple [Maybe Metadata op] -- nyi
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
+data DIMacroNode
+  = DIMacro
+  | DIMacroFile
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
 data DINode
-  -- | https://llvm.org/doxygen/classllvm_1_1DIEnumerator.html
+  -- | <https://llvm.org/doxygen/classllvm_1_1DIEnumerator.html>
   = DIEnumerator { nodeValue :: Word64, nodeName :: ShortByteString }
-  | DIImportedEntity Word32 Name DIScope DINode {- ? -} Word32
-  | DIObjCProperty Word32 Word32 Name DIFile Name Name DIType
-  | DIScope DIScope
-  | DISubrange Word32 Word32
+  -- | <https://llvm.org/doxygen/classllvm_1_1DIImportedEntity.html>
+  | DIImportedEntity
+    { nodeTag :: Word32
+    , nodeName :: ShortByteString
+    , nodeScope :: DIScope
+    , nodeEntity :: DINode
+    , nodeFile :: DIFile
+    , nodeLine :: Word32
+    }
+  -- | <https://llvm.org/doxygen/classllvm_1_1DIObjCProperty.html>
+  | DIObjCProperty
+    { nodeLine :: Word32
+    , nodeAttributes :: Word32
+    , nodeName :: ShortByteString
+    , nodeFile :: DIFile
+    , nodeGetterName :: Name
+    , nodeSetterName :: Name
+    , nodeType :: DIType
+    }
+  -- | <https://llvm.org/doxygen/classllvm_1_1DISubrange.html>
+  | DISubrange { nodeCount :: Word64, nodeLowerBound :: Word64 }
   | DITemplateParameter DITemplateParameter
   | DIVariable DIVariable
   | GenericDINode -- idk yet
@@ -181,7 +203,7 @@ data DILexicalBlockBase
 
 data DIVariable
   -- | https://llvm.org/docs/LangRef.html#diglobalvariable
-  -- = DIGlobalVariable
+  = DIGlobalVariable
   --   { variableFile :: DIFile
   --   , variableScope :: DIScope
   --   , variableName :: Name
