@@ -42,7 +42,7 @@ foreign import ccall unsafe "LLVM_Hs_DILocationGetLine" getLine ::
 foreign import ccall unsafe "LLVM_Hs_DILocationGetColumn" getColumn ::
   Ptr DILocation -> IO (CUInt)
 
-foreign import ccall unsafe "LLVM_HS_DILocationGetScope" getScope ::
+foreign import ccall unsafe "LLVM_Hs_DILocationGetScope" getScope ::
   Ptr DILocation -> IO (Ptr DILocalScope)
 
 foreign import ccall unsafe "LLVM_Hs_GetMDValue" getMDValue ::

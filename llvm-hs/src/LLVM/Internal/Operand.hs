@@ -62,9 +62,9 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
     sId <- liftIO $ FFI.getMetadataClassId mdn
     case sId of
       [mdSubclassIdP|DILocation|] -> A.DILocation
-        <$> (liftIO $ fromIntegral <$> FFI.getLine s)
-        <*> (liftIO $ fromIntegral <$> FFI.getColumn s)
-        <*> (decodeM =<< (liftIO $ FFI.getScope s))
+        <$> (liftIO $ fromIntegral <$> FFI.getLine (castPtr mdn))
+        <*> (liftIO $ fromIntegral <$> FFI.getColumn (castPtr mdn))
+        <*> (decodeM =<< (liftIO $ FFI.getScope (castPtr mdn)))
       otherwise -> fail "omg"
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
@@ -110,11 +110,13 @@ instance EncodeM EncodeAST A.CallableOperand (Ptr FFI.Value) where
   encodeM (Left i) = liftM (FFI.upCast :: Ptr FFI.InlineAsm -> Ptr FFI.Value) (encodeM i)
 
 instance EncodeM EncodeAST A.MetadataNode (Ptr FFI.MDNode) where
-  encodeM (A.MetadataNode ops) = scopeAnyCont $ do
+  encodeM (A.MetadataTuple ops) = scopeAnyCont $ do
     Context c <- gets encodeStateContext
     ops <- encodeM ops
     liftIO $ FFI.createMDNodeInContext c ops
   encodeM (A.MetadataNodeReference n) = referMDNode n
+
+instance EncodeM EncodeAST A.MDNode (Ptr FFI.MDNode) where
 
 instance DecodeM DecodeAST [Maybe A.Metadata] (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
