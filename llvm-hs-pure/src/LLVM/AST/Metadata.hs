@@ -26,7 +26,7 @@ data Metadata' op
 data MDNode
   = DIExpression { nodeValues :: [Word64] } -- nyi
   | DIGlobalVariableExpression -- nyi
-  | DILocation Word32 Word32 DILocalScope
+  | DILocation { locationLine :: Word32, locationColumn :: Word32, locationScope :: DILocalScope }
   | DIMacroNode DIMacroNode -- nyi
   | DINode DINode
   -- | MDTuple [Maybe Metadata op] -- nyi
