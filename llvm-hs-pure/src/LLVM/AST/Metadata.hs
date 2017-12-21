@@ -154,19 +154,54 @@ data Encoding
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DITemplateParameter
-  = DITemplateTypeParameter Name DIType
-  | DITemplateValueParameter Name DIType MDNode -- this mdnode sould be a metadata
+  -- | https://llvm.org/docs/LangRef.html#ditemplatetypeparameter
+  = DITemplateTypeParameter { templateParameterName :: ShortByteString, templateParameterType :: DIType }
+  -- | https://llvm.org/docs/LangRef.html#ditemplatevalueparameter
+  -- | DITemplateValueParameter
+    -- { templateParameterName :: ShortByteString
+    -- , templateParameterType :: DIType
+    -- , templateParameterValue :: _
+    -- , templateParameterTag :: _
+    -- }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DILexicalBlockBase
-  = DILexicalBlock DIFile DILocalScope Word32 Word32
-  | DILexicalBlockFile DIFile DILocalScope Word32
+  = DILexicalBlock
+    { lexicalBlockBaseFile :: DIFile
+    , lexicalBlockBaseScope :: DILocalScope
+    , lexicalBlockLine :: Word32
+    , lexicalBlockColumn :: Word32
+    }
+  | DILexicalBlockFile
+    { lexicalBlockBaseFile :: DIFile
+    , lexicalBlockBaseScope :: DILocalScope
+    , lexicalBlockDiscriminator :: Word32
+    }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DIVariable
-  -- | DIGlobalVariable file scope name linkageName line type isLocal isDefinition declaration variable?
-  = DIGlobalVariable DIFile DIScope Name Name Word32 DIType Bool Bool MDNode
-  | DILocalVariable DIFile DIScope Name Word32 Word32 [DIFlag]
+  -- | https://llvm.org/docs/LangRef.html#diglobalvariable
+  -- = DIGlobalVariable
+  --   { variableFile :: DIFile
+  --   , variableScope :: DIScope
+  --   , variableName :: Name
+  --   , variableLinkageName :: Name
+  --   , variableLine :: Word32
+  --   , variableType :: DIType
+  --   , variableLocal :: Bool
+  --   , variableDefinition :: Bool
+  --   , variable  MDNode
+  --   -- ___?
+  --   }
+  | DILocalVariable
+    { variableFile :: DIFile
+    , variableScope :: DIScope
+    , variableName :: ShortByteString
+    , variableLine :: Word32
+    , variableArg :: Word32
+    , variableFlags :: [DIFlag]
+    , variableType :: DIType
+    }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DIFlag = MkFakeFlag
