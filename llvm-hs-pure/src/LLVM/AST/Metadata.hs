@@ -64,7 +64,7 @@ data DIScope
   | DIFile DIFile
   | DILocalScope DILocalScope
   -- | DIModule Name DIScope
-  | DINamespace Name DIScope DIFile Word32
+  | DINamespace { scopeName :: ShortByteString, scopeScope :: DIScope, scopeFile :: DIFile, scopeExportSymbols :: Bool }
   | DIType DIType
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
@@ -72,12 +72,12 @@ data DIScope
 data DIFile = File
   { filename :: ShortByteString
   , directory :: ShortByteString
-  , checksumKind :: ChecksumKind
   , checksum :: ShortByteString
+  , checksumKind :: ChecksumKind
   } deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data ChecksumKind = None | MD5 | SHA1 | Last
-  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic, Enum)
 
 data DILocalScope
   = DILexicalBlockBase DILexicalBlockBase

@@ -117,6 +117,14 @@ const char *LLVM_Hs_GetNamedMetadataName(
 	return s.data();
 }
 
+const char *LLVM_Hs_GetStringRef(
+    StringRef* s,
+    unsigned *len
+) {
+    *len = s->size();
+    return s->data();
+}
+
 unsigned LLVM_Hs_GetNamedMetadataNumOperands(NamedMDNode *n) {
 	return n->getNumOperands();
 }
@@ -174,8 +182,40 @@ int64_t LLVM_Hs_DIEnumeratorGetValue(LLVMMetadataRef md) {
     return unwrap<DIEnumerator>(md)->getValue();
 }
 
-const char * LLVM_Hs_DIEnumeratorGetName(LLVMMetadataRef md, unsigned *len) {
-    StringRef s = unwrap<DIEnumerator>(md)->getName();
+MDString* LLVM_Hs_DIEnumeratorGetName(LLVMMetadataRef md, unsigned *len) {
+    return unwrap<DIEnumerator>(md)->getRawName();
+}
+
+MDString* LLVM_Hs_DIFileGetFilename(DIFile *di) {
+    return di->getRawFilename();
+}
+
+MDString* LLVM_Hs_DIFileGetDirectory(DIFile *di) {
+    return di->getRawDirectory();
+}
+
+MDString* LLVM_Hs_DIFileGetChecksum(DIFile *di) {
+    return di->getRawChecksum();
+}
+
+llvm::DIFile::ChecksumKind LLVM_Hs_DIFileGetChecksumKind(DIFile *di) {
+    return di->getChecksumKind();
+}
+
+DIScope* LLVM_Hs_DIScopeGetScope(DIScope *ds) {
+    return cast_or_null<DIScope>(ds->getScope());
+}
+
+bool LLVM_Hs_DINamespaceGetExportSymbols(DINamespace *ds) {
+    return ds->getExportSymbols();
+}
+
+DIFile* LLVM_Hs_DINamespaceGetFile(DINamespace *ds) {
+    return ds->getFile();
+}
+
+const char* LLVM_Hs_DIScopeGetName(DIScope *ds, unsigned *len) {
+    StringRef s = ds->getName();
     *len = s.size();
     return s.data();
 }

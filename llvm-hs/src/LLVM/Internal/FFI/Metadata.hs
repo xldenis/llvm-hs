@@ -115,4 +115,28 @@ foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetValue" getEnumeratorValue ::
   Ptr DINode -> IO CLong
 
 foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetName" getEnumeratorName ::
-  Ptr MDString -> Ptr CUInt -> IO CString
+  Ptr MDString -> IO (Ptr MDString)
+
+foreign import ccall unsafe "LLVM_Hs_DIFileGetFilename" getFileFilename ::
+  Ptr DIFile -> IO (Ptr MDString)
+
+foreign import ccall unsafe "LLVM_Hs_DIFileGetDirectory" getFileDirectory ::
+  Ptr DIFile -> IO (Ptr MDString)
+
+foreign import ccall unsafe "LLVM_Hs_DIFileGetChecksum" getFileChecksum ::
+  Ptr DIFile -> IO (Ptr MDString)
+
+foreign import ccall unsafe "LLVM_Hs_DIFileGetChecksumKind" getFileEnumeratorName ::
+  Ptr DIFile -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_Hs_DIScopeGetName" getScopeName ::
+  Ptr DIScope -> Ptr CUInt -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DINamespaceGetFile" getNamespaceFile ::
+  Ptr DINode -> IO (Ptr DIFile)
+
+foreign import ccall unsafe "LLVM_Hs_DINamespaceGetExportSymbols" getNamespaceExportedSymbols ::
+  Ptr DINode -> IO Bool
+
+foreign import ccall unsafe "LLVM_Hs_DIScopeGetScope" getScopeScope ::
+  Ptr DIScope -> IO (Ptr DIScope)
