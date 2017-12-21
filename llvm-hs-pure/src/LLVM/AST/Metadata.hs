@@ -147,15 +147,53 @@ data Virtuality = MkFake
 data DIType
   -- | https://llvm.org/docs/LangRef.html#dibasictype
   = DIBasicType
-    { typeName :: Name
+    { typeName :: ShortByteString
     , typeSize :: Word32
     , typeAlign :: Word32
     , typeEncoding :: Encoding
     , typeTag :: Word32
     }
-  | DICompositeType Name EnumerationType DIFile Word32 Word32 Word32 [DIType] Name
-  | DIDerivedType Tag DIType Word32 Word32
-  | DISubroutineType [DIType]
+  -- | <https://llvm.org/docs/LangRef.html#dicompositetype>
+  -- | <https://llvm.org/doxygen/classllvm_1_1DICompositeType.html>
+  | DICompositeType
+    { typeTag :: Word32
+    , typeName :: ShortByteString
+    , typeFile :: DIFile
+    , typeLine :: Word32
+    , typeScope :: DIScope
+    , typeBaseType :: DIType
+    , sizeInBits :: Word64
+    , alignInBits :: Word64
+    , offsetInBits :: Word64
+    , typeFlags :: [DIFlag]
+    , typeElements :: [DINode]
+    , typeRuntimeLang :: Word32
+    , vtableHolder :: DIType
+    , typeTemplateParamters :: [DITemplateParameter]
+    , typeIdentifier :: ShortByteString
+    }
+  -- | <https://llvm.org/docs/LangRef.html#diderivedtype>
+  -- | <https://llvm.org/doxygen/classllvm_1_1DIDerivedType.html>
+  | DIDerivedType
+    { typeTag :: Word32
+    , typeName :: ShortByteString
+    , typeFile :: DIFile
+    , typeLine :: Word32
+    , typeScope :: DIScope
+    , typeBaseType :: DIType
+    , sizeInBits :: Word64
+    , alignInBits :: Word64
+    , offsetInBits :: Word64
+    , typeAddressSpace :: Maybe Word32
+    , typeFlags :: [DIFlag]
+    } --Tag DIType Word32 Word32
+  -- | <https://llvm.org/docs/LangRef.html#disubroutinetype>
+  -- | <https://llvm.org/doxygen/classllvm_1_1DISubroutineType.html>
+  | DISubroutineType
+    { typeFlags :: [DIFlag]
+    , typeCC :: Word8
+    , typeTypeArray :: [DIType]
+    }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data Tag
