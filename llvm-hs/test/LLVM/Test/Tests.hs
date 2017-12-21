@@ -33,13 +33,13 @@ tests = testGroup "llvm-hs" [
     InlineAssembly.tests,
     Instructions.tests,
     Metadata.tests,
-    Module.tests,
-    OrcJIT.tests,
-    Optimization.tests,
-    Target.tests,
-    Analysis.tests,
-    Linking.tests,
-    Instrumentation.tests,
-    ObjectCode.tests,
-    Regression.tests
+    Module.tests
+    -- OrcJIT.tests,
+    -- Optimization.tests,
+    -- Target.tests,
+    -- Analysis.tests,
+    -- Linking.tests,
+    -- Instrumentation.tests,
+    -- ObjectCode.tests,
+    -- Regression.tests
   ]

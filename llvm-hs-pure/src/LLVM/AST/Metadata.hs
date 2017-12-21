@@ -3,17 +3,38 @@ module LLVM.AST.Metadata where
 import LLVM.Prelude
 import LLVM.AST.Name
 
+-- | A 'MetadataNodeID' is a number for identifying a metadata node.
+-- Note this is different from "named metadata", which are represented with
+-- 'LLVM.AST.NamedMetadataDefinition'.
+newtype MetadataNodeID = MetadataNodeID Word
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
+-- | <http://llvm.org/docs/LangRef.html#metadata>
+data MetadataNode' op
+  = MetadataNode MDNode
+  | MetadataTuple [Maybe (Metadata' op)]
+  | MetadataNodeReference MetadataNodeID
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
+-- | <http://llvm.org/docs/LangRef.html#metadata>
+data Metadata' op
+  = MDString ShortByteString -- ^ <http://llvm.org/docs/doxygen/html/classllvm_1_1MDNode.html>
+  | MDNode (MetadataNode' op) -- ^ <http://llvm.org/docs/doxygen/html/classllvm_1_1MDNode.html>
+  | MDValue op -- ^ <http://llvm.org/docs/doxygen/html/classllvm_1_1ValueAsMetadata.html>
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
 data MDNode
   = DIExpression -- nyi
   | DIGlobalVariableExpression -- nyi
   | DILocation Word32 Word32 DILocalScope
   | DIMacroNode -- nyi
   | DINode DINode
-  | MDTuple -- nyi
+  -- | MDTuple [Maybe Metadata op] -- nyi
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DINode
-  = DIEnumerator Word32 Name
+  -- | https://llvm.org/doxygen/classllvm_1_1DIEnumerator.html
+  = DIEnumerator { nodeValue :: Word32, nodeName :: Name }
   | DIImportedEntity Word32 Name DIScope DINode {- ? -} Word32
   | DIObjCProperty Word32 Word32 Name DIFile Name Name DIType
   | DIScope DIScope
