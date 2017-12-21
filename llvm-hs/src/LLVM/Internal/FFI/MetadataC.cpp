@@ -174,7 +174,7 @@ unsigned LLVM_Hs_DILocationGetColumn(DILocation *md) {
     return md->getColumn();
 }
 
-DIScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
+DILocalScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
     return md->getScope();
 }
 
@@ -203,7 +203,16 @@ llvm::DIFile::ChecksumKind LLVM_Hs_DIFileGetChecksumKind(DIFile *di) {
 }
 
 DIScope* LLVM_Hs_DIScopeGetScope(DIScope *ds) {
-    return cast_or_null<DIScope>(ds->getScope());
+    printf("ssss");
+
+    if (isa<DIScope>(ds)) {
+        return cast_or_null<DIScope>(ds->getScope());
+    }
+    return nullptr;
+}
+
+DIFile* LLVM_Hs_DIScopeGetFile(DIScope *ds) {
+    return cast_or_null<DIFile>(ds->getFile());
 }
 
 bool LLVM_Hs_DINamespaceGetExportSymbols(DINamespace *ds) {
@@ -218,6 +227,22 @@ const char* LLVM_Hs_DIScopeGetName(DIScope *ds, unsigned *len) {
     StringRef s = ds->getName();
     *len = s.size();
     return s.data();
+}
+
+DILocalScope* LLVM_Hs_DILexicalBlockBaseGetScope(DILexicalBlockBase* bb) {
+    return bb->getScope();
+}
+
+unsigned LLVM_Hs_DILexicalBlockFileGetDiscriminator(DILexicalBlockFile* bf) {
+    return bf->getDiscriminator();
+}
+
+unsigned LLVM_Hs_DILexicalBlockGetLine(DILexicalBlock* lb) {
+    return lb->getLine();
+}
+
+unsigned LLVM_Hs_DILexicalBlockGetColumn(DILexicalBlock* lb) {
+    return lb->getColumn();
 }
 }
 

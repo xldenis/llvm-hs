@@ -140,3 +140,18 @@ foreign import ccall unsafe "LLVM_Hs_DINamespaceGetExportSymbols" getNamespaceEx
 
 foreign import ccall unsafe "LLVM_Hs_DIScopeGetScope" getScopeScope ::
   Ptr DIScope -> IO (Ptr DIScope)
+
+foreign import ccall unsafe "LLVM_Hs_DIScopeGetFile" getScopeFile ::
+  Ptr DIScope -> IO (Ptr DIFile)
+
+foreign import ccall unsafe "LLVM_Hs_DILexicalBlockBaseGetScope" getLexicalBlockScope ::
+  Ptr DILexicalBlockBase -> IO (Ptr DILocalScope)
+
+foreign import ccall unsafe "LLVM_Hs_DILexicalBlockFileGetDiscriminator" getLexicalBlockFileDiscriminator ::
+  Ptr DILexicalBlockBase -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_Hs_DILexicalBlockGetLine" getLexicalBlockLine ::
+  Ptr DILexicalBlockBase -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_Hs_DILexicalBlockGetColumn" getLexicalBlockColumn ::
+  Ptr DILexicalBlockBase -> IO (CUInt)

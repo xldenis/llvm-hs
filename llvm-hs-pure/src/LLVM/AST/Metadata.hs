@@ -101,7 +101,7 @@ data DIScope
   | DIFile DIFile
   | DILocalScope DILocalScope
   -- | DIModule Name DIScope
-  | DINamespace { scopeName :: ShortByteString, scopeScope :: DIScope, scopeFile :: DIFile, scopeExportSymbols :: Bool }
+  | DINamespace { scopeName :: ShortByteString, scopeScope :: DIScope, scopeExportSymbols :: Bool }
   | DIType DIType
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 

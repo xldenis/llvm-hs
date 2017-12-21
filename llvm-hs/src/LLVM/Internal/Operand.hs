@@ -60,13 +60,15 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
 
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM mdn = do
-    liftIO $ putStrLn "fff"
     sId <- liftIO $ FFI.getMetadataClassId mdn
     case sId of
-      [mdSubclassIdP|DILocation|] -> A.DILocation
-        <$> (liftIO $ fromIntegral <$> FFI.getLine (castPtr mdn))
-        <*> (liftIO $ fromIntegral <$> FFI.getColumn (castPtr mdn))
-        <*> (decodeM =<< (liftIO $ FFI.getScope (castPtr mdn)))
+      [mdSubclassIdP|DILocation|] -> do
+        line <- liftIO $ fromIntegral <$> FFI.getLine (castPtr mdn)
+        col  <- liftIO $ fromIntegral <$> FFI.getColumn (castPtr mdn)
+        ptr <-  liftIO $ FFI.getScope (castPtr mdn)
+        scope <- decodeM (ptr)
+
+        return $ A.DILocation line col scope
       [mdSubclassIdP|DIEnumerator|] -> do
         val <- liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr mdn)
         nm  <- decodeM =<< (liftIO $ FFI.getEnumeratorName (castPtr mdn))
@@ -81,21 +83,18 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
       [mdSubclassIdP|DIGlobalVariable|] -> fail "DIGlobalVariable"
       [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
       [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
-      [mdSubclassIdP|DILexicalBlock|] -> fail "DILexicalBlock"
-      [mdSubclassIdP|DILexicalBlockFile|] -> fail "DILexicalBlockFile"
+      [mdSubclassIdP|DILexicalBlock|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DILexicalBlockFile|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
       [mdSubclassIdP|DILocalVariable|] -> fail "DILocalVariable"
       [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
       [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
       [mdSubclassIdP|DIModule|] -> fail "DIModule"
-      [mdSubclassIdP|DICompileUnit|] -> do
-        A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DIFile|] -> do
-        A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DINamespace|] -> do
-        A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DICompileUnit|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DIFile|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DINamespace|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
       [mdSubclassIdP|DIObjCProperty|] -> fail "DIObjCProperty"
       [mdSubclassIdP|DistinctMDOperandPlaceholder|] -> fail "DistinctMDOperandPlaceholder"
-      [mdSubclassIdP|DISubprogram|] -> fail "DISubprogram"
+      [mdSubclassIdP|DISubprogram|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
       [mdSubclassIdP|DISubrange|] -> fail "DISubrange"
       [mdSubclassIdP|DISubroutineType|] -> fail "DISubroutineType"
       [mdSubclassIdP|DITemplateTypeParameter|] -> fail "DITemplateTypeParameter"
@@ -111,13 +110,15 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
       [mdSubclassIdP|DINamespace|] -> do
         scope <- decodeM =<< (liftIO $ FFI.getScopeScope p)
         name  <- getByteStringFromFFI FFI.getScopeName p
-        file  <- decodeM =<< (liftIO $ FFI.getNamespaceFile (FFI.upCast p))
         exported <- liftIO $ FFI.getNamespaceExportedSymbols (FFI.upCast p)
-        return $ A.DINamespace name scope file exported
+        return $ A.DINamespace name scope exported
       [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
       [mdSubclassIdP|DIFile|] -> do
         diFile <- decodeM (castPtr p :: Ptr FFI.DIFile)
         return $ A.DIFile diFile
+      [mdSubclassIdP|DILexicalBlock|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
+      [mdSubclassIdP|DILexicalBlockFile|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
+      [mdSubclassIdP|DISubprogram|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
 
       otherwise -> fail "DIScope"
 
@@ -131,7 +132,29 @@ instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
     return $ A.File fname dir cksum (toEnum $ fromIntegral csk)
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
-  -- decodeM ls = do
+  decodeM ls = do
+    sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast ls)
+    case sId of
+      [mdSubclassIdP|DISubprogram|] -> do
+        -- file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
+        scope <- decodeM =<< (liftIO $ FFI.getScopeScope (castPtr ls))
+        name  <- getByteStringFromFFI FFI.getScopeName (castPtr ls)
+        return $ A.DISubprogram name undefined scope -- file undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined
+        fail "DISubprogram"
+      [mdSubclassIdP|DILexicalBlock|] -> do
+        file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
+        scope <- decodeM =<< (liftIO $ FFI.getLexicalBlockScope (castPtr ls))
+        line  <- fmap fromIntegral $ liftIO $ FFI.getLexicalBlockLine (castPtr ls)
+        col   <- fmap fromIntegral $ liftIO $ FFI.getLexicalBlockColumn (castPtr ls)
+
+        return . A.DILexicalBlockBase $ A.DILexicalBlock file scope line col
+      [mdSubclassIdP|DILexicalBlockFile|] -> do
+        file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
+        scope <- decodeM =<< (liftIO $ FFI.getLexicalBlockScope (castPtr ls))
+        disc  <- fmap fromIntegral $ liftIO $ FFI.getLexicalBlockFileDiscriminator (castPtr ls)
+
+        return .  A.DILexicalBlockBase $ A.DILexicalBlockFile file scope disc
+      otherwise -> fail "Expected DILocalScope pointer"
 
 instance DecodeM DecodeAST A.CallableOperand (Ptr FFI.Value) where
   decodeM v = do
@@ -199,7 +222,6 @@ instance DecodeM DecodeAST A.MetadataNode (Ptr FFI.MDNode) where
     case sId of
       [mdSubclassIdP|MDTuple|] -> return A.MetadataNodeReference `ap` getMetadataNodeID p
       otherwise -> do
-        liftIO $ putStrLn "sdkfj"
         return A.MetadataNode `ap` decodeM p
 --     -- fl <- decodeM =<< liftIO (FFI.mdNodeIsFunctionLocal p)
 --     -- if fl
