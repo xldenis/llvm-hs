@@ -155,3 +155,6 @@ data RawOStream
 data RawPWriteStream
 
 instance ChildOf RawOStream RawPWriteStream
+
+-- | <https://llvm.org/doxygen/classllvm_1_1StringRef.html>
+data StringRef

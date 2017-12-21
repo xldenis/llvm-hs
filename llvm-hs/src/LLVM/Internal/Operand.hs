@@ -24,7 +24,7 @@ import LLVM.Internal.Context
 import LLVM.Internal.DecodeAST
 import LLVM.Internal.EncodeAST
 import LLVM.Internal.InlineAssembly ()
-import LLVM.Internal.Metadata ()
+import LLVM.Internal.Metadata (getByteStringFromFFI)
 
 import qualified LLVM.AST as A
 
@@ -68,13 +68,11 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
         <*> (liftIO $ fromIntegral <$> FFI.getColumn (castPtr mdn))
         <*> (decodeM =<< (liftIO $ FFI.getScope (castPtr mdn)))
       [mdSubclassIdP|DIEnumerator|] -> do
-        np <- alloca
-        s <- liftIO (FFI.getEnumeratorName (castPtr mdn) np)
-        n <- peek np
-        A.DINode <$> (A.DIEnumerator
-          <$> (liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr mdn))
-          <*> (decodeM (s, n)))
-      [mdSubclassIdP|DIFile|] -> fail "DIFile"
+        val <- liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr mdn)
+        nm  <- decodeM =<< (liftIO $ FFI.getEnumeratorName (castPtr mdn))
+
+        return $ A.DINode $ A.DIEnumerator val nm
+
       [mdSubclassIdP|DIBasicType|] -> fail "DIBasicType"
       [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
       [mdSubclassIdP|DICompositeType|] -> fail "DICompositeType"
@@ -89,7 +87,12 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
       [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
       [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
       [mdSubclassIdP|DIModule|] -> fail "DIModule"
-      [mdSubclassIdP|DINamespace|] -> fail "DINamespace"
+      [mdSubclassIdP|DICompileUnit|] -> do
+        A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DIFile|] -> do
+        A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DINamespace|] -> do
+        A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
       [mdSubclassIdP|DIObjCProperty|] -> fail "DIObjCProperty"
       [mdSubclassIdP|DistinctMDOperandPlaceholder|] -> fail "DistinctMDOperandPlaceholder"
       [mdSubclassIdP|DISubprogram|] -> fail "DISubprogram"
@@ -100,11 +103,35 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
 
       otherwise -> fail "omg"
 
+instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
+  decodeM p = do
+    sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast p)
+
+    case sId of
+      [mdSubclassIdP|DINamespace|] -> do
+        scope <- decodeM =<< (liftIO $ FFI.getScopeScope p)
+        name  <- getByteStringFromFFI FFI.getScopeName p
+        file  <- decodeM =<< (liftIO $ FFI.getNamespaceFile (FFI.upCast p))
+        exported <- liftIO $ FFI.getNamespaceExportedSymbols (FFI.upCast p)
+        return $ A.DINamespace name scope file exported
+      [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
+      [mdSubclassIdP|DIFile|] -> do
+        diFile <- decodeM (castPtr p :: Ptr FFI.DIFile)
+        return $ A.DIFile diFile
+
+      otherwise -> fail "DIScope"
+
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
+  decodeM diF = do
+    fname <- decodeM =<< (liftIO $ FFI.getFileFilename diF)
+    dir   <- decodeM =<< (liftIO $ FFI.getFileDirectory diF)
+    cksum <- decodeM =<< (liftIO $ FFI.getFileChecksum diF)
+    csk   <-             (liftIO $ FFI.getFileEnumeratorName diF)
+
+    return $ A.File fname dir cksum (toEnum $ fromIntegral csk)
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   -- decodeM ls = do
-
 
 instance DecodeM DecodeAST A.CallableOperand (Ptr FFI.Value) where
   decodeM v = do
