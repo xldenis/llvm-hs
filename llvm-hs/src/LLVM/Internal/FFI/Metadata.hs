@@ -110,3 +110,9 @@ foreign import ccall unsafe "LLVM_Hs_MetadataReplaceAllUsesWith" metadataReplace
 
 namedMetadataAddOperands :: Ptr NamedMetadata -> (CUInt, Ptr (Ptr MDNode)) -> IO ()
 namedMetadataAddOperands nm (n, vs) = namedMetadataAddOperands' nm vs n
+
+foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetValue" getEnumeratorValue ::
+  Ptr DINode -> IO CLong
+
+foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetName" getEnumeratorName ::
+  Ptr MDString -> Ptr CUInt -> IO CString

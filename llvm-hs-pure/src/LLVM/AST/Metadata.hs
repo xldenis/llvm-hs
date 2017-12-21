@@ -12,7 +12,7 @@ newtype MetadataNodeID = MetadataNodeID Word
 -- | <http://llvm.org/docs/LangRef.html#metadata>
 data MetadataNode' op
   = MetadataNode MDNode
-  | MetadataTuple [Maybe (Metadata' op)]
+  | MetadataTuple [Maybe (Metadata' op)] -- get rid of the inner maybe... [Metadata' op] is already 0 or more nodes... why does each node need to be optional?
   | MetadataNodeReference MetadataNodeID
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
@@ -34,7 +34,7 @@ data MDNode
 
 data DINode
   -- | https://llvm.org/doxygen/classllvm_1_1DIEnumerator.html
-  = DIEnumerator { nodeValue :: Word32, nodeName :: Name }
+  = DIEnumerator { nodeValue :: Word64, nodeName :: ShortByteString }
   | DIImportedEntity Word32 Name DIScope DINode {- ? -} Word32
   | DIObjCProperty Word32 Word32 Name DIFile Name Name DIType
   | DIScope DIScope

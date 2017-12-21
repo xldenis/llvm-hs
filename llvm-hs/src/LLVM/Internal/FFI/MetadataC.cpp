@@ -169,5 +169,15 @@ unsigned LLVM_Hs_DILocationGetColumn(DILocation *md) {
 DIScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
     return md->getScope();
 }
+
+int64_t LLVM_Hs_DIEnumeratorGetValue(LLVMMetadataRef md) {
+    return unwrap<DIEnumerator>(md)->getValue();
+}
+
+const char * LLVM_Hs_DIEnumeratorGetName(LLVMMetadataRef md, unsigned *len) {
+    StringRef s = unwrap<DIEnumerator>(md)->getName();
+    *len = s.size();
+    return s.data();
+}
 }
 

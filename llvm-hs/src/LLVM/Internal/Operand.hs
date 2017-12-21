@@ -48,24 +48,59 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
   decodeM md = do
     s <- liftIO $ FFI.isAMDString md
     if (s /= nullPtr)
-       then A.MDString <$> decodeM s
-       else do n <- liftIO $ FFI.isAMDNode md
-               if (n /= nullPtr)
-                  then A.MDNode <$> decodeM n
-                  else do v <- liftIO $ FFI.isAMDValue md
-                          if (v /= nullPtr)
-                              then A.MDValue <$> decodeM v
-                              else fail "Metadata was not one of [MDString, MDValue, MDNode]"
+      then A.MDString <$> decodeM s
+      else do
+        n <- liftIO $ FFI.isAMDNode md
+        if (n /= nullPtr)
+          then A.MDNode <$> decodeM n
+          else do v <- liftIO $ FFI.isAMDValue md
+                  if (v /= nullPtr)
+                      then A.MDValue <$> decodeM v
+                      else fail "Metadata was not one of [MDString, MDValue, MDNode]"
 
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM mdn = do
+    liftIO $ putStrLn "fff"
     sId <- liftIO $ FFI.getMetadataClassId mdn
     case sId of
       [mdSubclassIdP|DILocation|] -> A.DILocation
         <$> (liftIO $ fromIntegral <$> FFI.getLine (castPtr mdn))
         <*> (liftIO $ fromIntegral <$> FFI.getColumn (castPtr mdn))
         <*> (decodeM =<< (liftIO $ FFI.getScope (castPtr mdn)))
+      [mdSubclassIdP|DIEnumerator|] -> do
+        np <- alloca
+        s <- liftIO (FFI.getEnumeratorName (castPtr mdn) np)
+        n <- peek np
+        A.DINode <$> (A.DIEnumerator
+          <$> (liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr mdn))
+          <*> (decodeM (s, n)))
+      [mdSubclassIdP|DIFile|] -> fail "DIFile"
+      [mdSubclassIdP|DIBasicType|] -> fail "DIBasicType"
+      [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
+      [mdSubclassIdP|DICompositeType|] -> fail "DICompositeType"
+      [mdSubclassIdP|DIDerivedType|] -> fail "DIDerivedType"
+      [mdSubclassIdP|DIExpression|] -> fail "DIExpression"
+      [mdSubclassIdP|DIGlobalVariable|] -> fail "DIGlobalVariable"
+      [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
+      [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
+      [mdSubclassIdP|DILexicalBlock|] -> fail "DILexicalBlock"
+      [mdSubclassIdP|DILexicalBlockFile|] -> fail "DILexicalBlockFile"
+      [mdSubclassIdP|DILocalVariable|] -> fail "DILocalVariable"
+      [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
+      [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
+      [mdSubclassIdP|DIModule|] -> fail "DIModule"
+      [mdSubclassIdP|DINamespace|] -> fail "DINamespace"
+      [mdSubclassIdP|DIObjCProperty|] -> fail "DIObjCProperty"
+      [mdSubclassIdP|DistinctMDOperandPlaceholder|] -> fail "DistinctMDOperandPlaceholder"
+      [mdSubclassIdP|DISubprogram|] -> fail "DISubprogram"
+      [mdSubclassIdP|DISubrange|] -> fail "DISubrange"
+      [mdSubclassIdP|DISubroutineType|] -> fail "DISubroutineType"
+      [mdSubclassIdP|DITemplateTypeParameter|] -> fail "DITemplateTypeParameter"
+      [mdSubclassIdP|DITemplateValueParameter|] -> fail "DITemplateValueParameter"
+
       otherwise -> fail "omg"
+
+instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   -- decodeM ls = do
@@ -133,13 +168,18 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.MetadataAsVal) where
 
 instance DecodeM DecodeAST A.MetadataNode (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
-
-    -- fl <- decodeM =<< liftIO (FFI.mdNodeIsFunctionLocal p)
-    -- if fl
-    --  then
-    --    return A.MetadataNode `ap` decodeM p
-    --  else
-       return A.MetadataNodeReference `ap` getMetadataNodeID p
+    sId <- liftIO $ FFI.getMetadataClassId p
+    case sId of
+      [mdSubclassIdP|MDTuple|] -> return A.MetadataNodeReference `ap` getMetadataNodeID p
+      otherwise -> do
+        liftIO $ putStrLn "sdkfj"
+        return A.MetadataNode `ap` decodeM p
+--     -- fl <- decodeM =<< liftIO (FFI.mdNodeIsFunctionLocal p)
+--     -- if fl
+--     --  then
+--     --    return A.MetadataNode `ap` decodeM p
+--     --  else
+       -- return A.MetadataNodeReference `ap` getMetadataNodeID p
 
 getMetadataDefinitions :: DecodeAST [A.Definition]
 getMetadataDefinitions = fix $ \continue -> do
