@@ -33,8 +33,22 @@ data MDNode
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DIMacroNode
+  -- | <https://llvm.org/doxygen/classllvm_1_1DIMacro.html>
+  -- | <https://llvm.org/docs/LangRef.html#dimacro>
   = DIMacro
+    { macroInfo :: Word32
+    , macroLine :: Word32
+    , macroName :: ShortByteString
+    , macroValue :: ShortByteString
+    }
+  -- | <https://llvm.org/doxygen/classllvm_1_1DIMacroFile.html>
+  -- | <https://llvm.org/docs/LangRef.html#dimacrofile>
   | DIMacroFile
+    { macroInfo :: Word32
+    , macroLine :: Word32
+    , macroFile :: DIFile
+    , macroElemments :: [DIMacroNode]
+    }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DINode
@@ -59,6 +73,7 @@ data DINode
     , nodeSetterName :: Name
     , nodeType :: DIType
     }
+  | DIScope DIScope
   -- | <https://llvm.org/doxygen/classllvm_1_1DISubrange.html>
   | DISubrange { nodeCount :: Word64, nodeLowerBound :: Word64 }
   | DITemplateParameter DITemplateParameter
