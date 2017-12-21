@@ -32,7 +32,8 @@ tests = testGroup "Metadata"
 diNode = testCase "dinodes" $ do
   fStr <- B.readFile "test/module.ll"
   withContext $ \context -> do
-    withModuleFromLLVMAssembly' context fStr moduleAST
+    a <- withModuleFromLLVMAssembly' context fStr moduleAST
+    putStrLn (show a)
     pure ()
 
 globalMetadata = testCase "global" $ do

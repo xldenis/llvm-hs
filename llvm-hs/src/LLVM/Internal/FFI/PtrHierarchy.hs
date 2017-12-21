@@ -119,6 +119,11 @@ data DIScope
 
 instance ChildOf DINode DIScope
 
+-- | https://llvm.org/doxygen/classllvm_1_1DIFile.html
+data DIFile
+
+instance ChildOf DIScope DIFile
+
 -- | https://llvm.org/doxygen/classllvm_1_1DILocalScope.html
 data DILocalScope
 
