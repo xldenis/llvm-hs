@@ -203,12 +203,7 @@ llvm::DIFile::ChecksumKind LLVM_Hs_DIFileGetChecksumKind(DIFile *di) {
 }
 
 DIScope* LLVM_Hs_DIScopeGetScope(DIScope *ds) {
-    printf("ssss");
-
-    if (isa<DIScope>(ds)) {
-        return cast_or_null<DIScope>(ds->getScope());
-    }
-    return nullptr;
+    return cast_or_null<DIScope>(ds->getScope());
 }
 
 DIFile* LLVM_Hs_DIScopeGetFile(DIScope *ds) {
