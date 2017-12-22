@@ -136,11 +136,11 @@ instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast ls)
     case sId of
       [mdSubclassIdP|DISubprogram|] -> do
-        -- file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
+        file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
         scope <- decodeM =<< (liftIO $ FFI.getScopeScope (castPtr ls))
         name  <- getByteStringFromFFI FFI.getScopeName (castPtr ls)
-        return $ A.DISubprogram name undefined scope -- file undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined
-        fail "DISubprogram"
+        return $ A.DISubprogram name undefined scope file undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined
+        -- fail "DISubprogram"
       [mdSubclassIdP|DILexicalBlock|] -> do
         file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
         scope <- decodeM =<< (liftIO $ FFI.getLexicalBlockScope (castPtr ls))
