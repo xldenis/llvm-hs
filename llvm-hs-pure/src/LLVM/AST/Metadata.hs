@@ -211,21 +211,21 @@ data Tag
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data EnumerationType
-  = Array
-  | Class
-  | Enumeration
-  | Structure
-  | Union
+  = ArrayEnumeration
+  | ClassEnumeration
+  | EnumerationEnumeration
+  | StructureEnumeration
+  | UnionEnumeration
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data Encoding
-  = Address
-  | Boolean
-  | Float
-  | Signed
-  | SignedChar
-  | Unsigned
-  | UnsignedChar
+  = AddressEncoding
+  | BooleanEncoding
+  | FloatEncoding
+  | SignedEncoding
+  | SignedCharEncoding
+  | UnsignedEncoding
+  | UnsignedCharEncoding
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DITemplateParameter
