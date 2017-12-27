@@ -124,7 +124,9 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
 
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
   decodeM diF = do
+    when (diF == nullPtr) $ error "crashing for now."
     fname <- decodeM =<< (liftIO $ FFI.getFileFilename diF)
+
     dir   <- decodeM =<< (liftIO $ FFI.getFileDirectory diF)
     cksum <- decodeM =<< (liftIO $ FFI.getFileChecksum diF)
     csk   <-             (liftIO $ FFI.getFileEnumeratorName diF)
