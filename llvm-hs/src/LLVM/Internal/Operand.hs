@@ -133,6 +133,24 @@ instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
 
     return $ A.File fname dir cksum (toEnum $ fromIntegral csk)
 
+instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
+  decodeM diTy = do
+    sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast diTy)
+
+    case sId of
+      [mdSubclassIdP|DIBasicType|] -> do
+        name <- getByteStringFromFFI FFI.getTypeName (castPtr diTy)
+
+        size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
+        align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
+        encoding <- fmap fromIntegral $ liftIO $ FFI.getBasicTypeEncoding diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getBasicTypeTag diTy
+
+        return $ A.DIBasicType name size align (A.toEncoding encoding) tag
+      [mdSubclassIdP|DICompositeType|]  -> error "nyi"
+      [mdSubclassIdP|DIDerivedType|]    -> error "nyi"
+      [mdSubclassIdP|DISubroutineType|] -> error "nyi"
+
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   decodeM ls = do
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast ls)

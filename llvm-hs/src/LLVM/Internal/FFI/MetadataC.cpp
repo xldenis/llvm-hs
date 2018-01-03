@@ -224,6 +224,24 @@ const char* LLVM_Hs_DIScopeGetName(DIScope *ds, unsigned *len) {
     return s.data();
 }
 
+const char* LLVM_Hs_DITypeGetName(DIType *ds, unsigned *len) {
+    StringRef s = ds->getName();
+    *len = s.size();
+    return s.data();
+}
+
+uint64_t LLVM_Hs_DITypeGetSizeInBits(DIType *ds) {
+    return ds->getSizeInBits();
+}
+
+uint32_t LLVM_Hs_DITypeGetAlignInBits(DIType *ds) {
+    return ds->getSizeInBits();
+}
+
+unsigned LLVM_Hs_DIBasicTypeGetEncoding(DIBasicType *ds) {
+    return ds->getEncoding();
+}
+
 DILocalScope* LLVM_Hs_DILexicalBlockBaseGetScope(DILexicalBlockBase* bb) {
     return bb->getScope();
 }

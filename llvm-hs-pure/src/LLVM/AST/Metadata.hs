@@ -148,7 +148,7 @@ data DIType
   -- | https://llvm.org/docs/LangRef.html#dibasictype
   = DIBasicType
     { typeName :: ShortByteString
-    , typeSize :: Word32
+    , typeSize :: Word64
     , typeAlign :: Word32
     , typeEncoding :: Encoding
     , typeTag :: Word32
@@ -227,6 +227,14 @@ data Encoding
   | UnsignedEncoding
   | UnsignedCharEncoding
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
+toEncoding 1 = AddressEncoding
+toEncoding 2 = BooleanEncoding
+toEncoding 4 = FloatEncoding
+toEncoding 5 = SignedEncoding
+toEncoding 6 = SignedCharEncoding
+toEncoding 7 = UnsignedEncoding
+toEncoding 8 = UnsignedCharEncoding
 
 data DITemplateParameter
   -- | https://llvm.org/docs/LangRef.html#ditemplatetypeparameter

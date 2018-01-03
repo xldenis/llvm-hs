@@ -132,6 +132,21 @@ foreign import ccall unsafe "LLVM_Hs_DIFileGetChecksumKind" getFileEnumeratorNam
 foreign import ccall unsafe "LLVM_Hs_DIScopeGetName" getScopeName ::
   Ptr DIScope -> Ptr CUInt -> IO CString
 
+foreign import ccall unsafe "LLVM_Hs_DITypeGetName" getTypeName ::
+  Ptr DIType -> Ptr CUInt -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DITypeGetAlignInBits" getTypeAlignInBits ::
+  Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DITypeGetSizeInBits" getTypeSizeInBits ::
+  Ptr DIType -> IO CULong
+
+foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetEncoding" getBasicTypeEncoding ::
+  Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetTag" getBasicTypeTag ::
+  Ptr DIType -> IO CUInt
+
 foreign import ccall unsafe "LLVM_Hs_DINamespaceGetFile" getNamespaceFile ::
   Ptr DINode -> IO (Ptr DIFile)
 

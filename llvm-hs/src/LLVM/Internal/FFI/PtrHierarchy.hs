@@ -124,6 +124,11 @@ data DIFile
 
 instance ChildOf DIScope DIFile
 
+-- | https://llvm.org/doxygen/classllvm_1_1DIType.html
+data DIType
+
+instance ChildOf DIScope DIType
+
 -- | https://llvm.org/doxygen/classllvm_1_1DILocalScope.html
 data DILocalScope
 
