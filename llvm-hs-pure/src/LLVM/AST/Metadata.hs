@@ -24,8 +24,9 @@ data Metadata' op
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data MDNode
-  = DIExpression { nodeValues :: [Word64] } -- nyi
-  | DIGlobalVariableExpression -- nyi
+  = DIExpression { nodeElements :: [Word64] }
+  | DIGlobalVariableExpression
+    { nodeVariable :: MDNode, nodeExpression :: MDNode }
   | DILocation { locationLine :: Word32, locationColumn :: Word32, locationScope :: DILocalScope }
   | DIMacroNode DIMacroNode -- nyi
   | DINode DINode
@@ -100,7 +101,13 @@ data DIScope
     }
   | DIFile DIFile
   | DILocalScope DILocalScope
-  -- | DIModule Name DIScope
+  | DIModule
+    { scopeScope :: DIScope
+    , scopeName :: ShortByteString
+    , scopeConfigurationMacros :: ShortByteString
+    , scopeIncludePath :: ShortByteString
+    , scopeISysRoot :: ShortByteString
+    }
   | DINamespace { scopeName :: ShortByteString, scopeScope :: DIScope, scopeExportSymbols :: Bool }
   | DIType DIType
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
@@ -240,12 +247,12 @@ data DITemplateParameter
   -- | https://llvm.org/docs/LangRef.html#ditemplatetypeparameter
   = DITemplateTypeParameter { templateParameterName :: ShortByteString, templateParameterType :: DIType }
   -- | https://llvm.org/docs/LangRef.html#ditemplatevalueparameter
-  -- | DITemplateValueParameter
-    -- { templateParameterName :: ShortByteString
-    -- , templateParameterType :: DIType
-    -- , templateParameterValue :: _
-    -- , templateParameterTag :: _
-    -- }
+  | DITemplateValueParameter
+    { templateParameterName :: ShortByteString
+    , templateParameterType :: DIType
+    , templateParameterValue :: MDNode -- this should actually be a full value but im not threading that in just yet
+    , templateParameterTag :: Word32
+    }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DILexicalBlockBase
@@ -265,17 +272,17 @@ data DILexicalBlockBase
 data DIVariable
   -- | https://llvm.org/docs/LangRef.html#diglobalvariable
   = DIGlobalVariable
-  --   { variableFile :: DIFile
-  --   , variableScope :: DIScope
-  --   , variableName :: Name
-  --   , variableLinkageName :: Name
-  --   , variableLine :: Word32
-  --   , variableType :: DIType
-  --   , variableLocal :: Bool
-  --   , variableDefinition :: Bool
-  --   , variable  MDNode
-  --   -- ___?
-  --   }
+    { variableFile :: DIFile
+    , variableScope :: DIScope
+    , variableName :: Name
+    , variableLinkageName :: Name
+    , variableLine :: Word32
+    , variableType :: DIType
+    , variableLocal :: Bool
+    , variableDefinition :: Bool
+    , staticDataMemberDeclaration :: MDNode
+    , variableAlignInBits :: Word32
+    }
   | DILocalVariable
     { variableFile :: DIFile
     , variableScope :: DIScope
