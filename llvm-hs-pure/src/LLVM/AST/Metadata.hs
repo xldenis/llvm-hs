@@ -148,8 +148,8 @@ data DIType
   -- | https://llvm.org/docs/LangRef.html#dibasictype
   = DIBasicType
     { typeName :: ShortByteString
-    , typeSize :: Word64
-    , typeAlign :: Word32
+    , sizeInBits :: Word64
+    , alignInBits :: Word32
     , typeEncoding :: Encoding
     , typeTag :: Word32
     }
@@ -163,7 +163,7 @@ data DIType
     , typeScope :: DIScope
     , typeBaseType :: DIType
     , sizeInBits :: Word64
-    , alignInBits :: Word64
+    , alignInBits :: Word32
     , offsetInBits :: Word64
     , typeFlags :: [DIFlag]
     , typeElements :: [DINode]
@@ -182,10 +182,10 @@ data DIType
     , typeScope :: DIScope
     , typeBaseType :: DIType
     , sizeInBits :: Word64
-    , alignInBits :: Word64
+    , alignInBits :: Word32
     , offsetInBits :: Word64
     , typeAddressSpace :: Maybe Word32
-    , typeFlags :: [DIFlag]
+    , typeFlags :: [DIFlag] -- turns out this is actually a word32 that represents one of the mutually exclusive flags
     } --Tag DIType Word32 Word32
   -- | <https://llvm.org/docs/LangRef.html#disubroutinetype>
   -- | <https://llvm.org/doxygen/classllvm_1_1DISubroutineType.html>
@@ -287,5 +287,6 @@ data DIVariable
     }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
+toFlags _ = [MkFakeFlag]
 data DIFlag = MkFakeFlag
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)

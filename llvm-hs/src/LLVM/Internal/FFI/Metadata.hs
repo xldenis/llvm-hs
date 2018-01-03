@@ -14,6 +14,10 @@ import LLVM.Internal.FFI.Context
 import LLVM.Internal.FFI.PtrHierarchy
 import LLVM.Internal.FFI.LLVMCTypes
 
+data DITemplateParameterArray
+
+data DINodeArray
+
 foreign import ccall unsafe "LLVM_Hs_IsAMDString" isAMDString ::
   Ptr Metadata -> IO (Ptr MDString)
 
@@ -141,11 +145,38 @@ foreign import ccall unsafe "LLVM_Hs_DITypeGetAlignInBits" getTypeAlignInBits ::
 foreign import ccall unsafe "LLVM_Hs_DITypeGetSizeInBits" getTypeSizeInBits ::
   Ptr DIType -> IO CULong
 
+foreign import ccall unsafe "LLVM_Hs_DITypeGetOffsetInBits" getTypeOffsetInBits ::
+  Ptr DIType -> IO CULong
+
 foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetEncoding" getBasicTypeEncoding ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetTag" getBasicTypeTag ::
+foreign import ccall unsafe "LLVM_Hs_DITypeGetTag" getTypeTag ::
   Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DITypeGetLine" getTypeLine ::
+  Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DITypeFlags" getTypeFlags ::
+  Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetElements" getElements ::
+  Ptr DIType -> IO (Ptr DINodeArray)
+
+foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetVTableHolder" getVTableHolder ::
+  Ptr DIType -> IO (Ptr DIType)
+
+foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetBaseType" getCompositeBaseType ::
+  Ptr DIType -> IO (Ptr DIType)
+
+foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetRuntimeLang" getRuntimeLang ::
+  Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetTemplateParameters" getTemplateParams ::
+  Ptr DIType -> IO (Ptr DITemplateParameterArray)
+
+foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetIdentifier" getIdentifier ::
+  Ptr DIType -> Ptr CUInt -> IO CString
 
 foreign import ccall unsafe "LLVM_Hs_DINamespaceGetFile" getNamespaceFile ::
   Ptr DINode -> IO (Ptr DIFile)

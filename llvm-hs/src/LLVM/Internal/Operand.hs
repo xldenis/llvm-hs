@@ -144,12 +144,54 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
         size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
         align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
         encoding <- fmap fromIntegral $ liftIO $ FFI.getBasicTypeEncoding diTy
-        tag      <- fmap fromIntegral $ liftIO $ FFI.getBasicTypeTag diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getTypeTag diTy
 
         return $ A.DIBasicType name size align (A.toEncoding encoding) tag
-      [mdSubclassIdP|DICompositeType|]  -> error "nyi"
+      [mdSubclassIdP|DICompositeType|]  -> do
+        name <- getByteStringFromFFI FFI.getTypeName (castPtr diTy)
+
+        file   <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr diTy))
+        scope  <- decodeM =<< (liftIO $ FFI.getScopeScope (castPtr diTy))
+        baseTy <- decodeM =<< (liftIO $ FFI.getCompositeBaseType diTy)
+
+        line     <- fmap fromIntegral $ liftIO $ FFI.getTypeLine diTy
+        size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
+        align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
+        offset   <- fmap fromIntegral $ liftIO $ FFI.getTypeOffsetInBits diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getTypeTag diTy
+
+        flags <- fmap fromIntegral $ liftIO $ FFI.getTypeFlags diTy
+        els   <- decodeM =<< (liftIO $ FFI.getElements diTy)
+
+        runLang <- fmap fromIntegral $ liftIO $ FFI.getRuntimeLang diTy
+        vtable <-  decodeM =<< (liftIO $ FFI.getVTableHolder diTy)
+        tmplParams <- decodeM =<< (liftIO $ FFI.getTemplateParams diTy)
+
+        tyIdent <-  getByteStringFromFFI FFI.getIdentifier diTy
+
+        return $ A.DICompositeType
+          { A.typeTag = tag
+          , A.typeName = name
+          , A.typeFile = file
+          , A.typeLine = line
+          , A.typeScope = scope
+          , A.typeBaseType = baseTy
+          , A.sizeInBits = size
+          , A.alignInBits = align
+          , A.offsetInBits = offset
+          , A.typeFlags = (A.toFlags flags)
+          , A.typeElements = els
+          , A.typeRuntimeLang = runLang
+          , A.vtableHolder = vtable
+          , A.typeTemplateParamters = tmplParams
+          , A.typeIdentifier = tyIdent
+          }
       [mdSubclassIdP|DIDerivedType|]    -> error "nyi"
       [mdSubclassIdP|DISubroutineType|] -> error "nyi"
+
+instance DecodeM DecodeAST [A.DINode] (Ptr FFI.DINodeArray) where
+
+instance DecodeM DecodeAST [A.DITemplateParameter] (Ptr FFI.DITemplateParameterArray) where
 
 instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
   decodeM ls = do

@@ -234,12 +234,46 @@ uint64_t LLVM_Hs_DITypeGetSizeInBits(DIType *ds) {
     return ds->getSizeInBits();
 }
 
+uint64_t LLVM_Hs_DITypeGetOffsetInBits(DIType *ds) {
+    return ds->getOffsetInBits();
+}
+
 uint32_t LLVM_Hs_DITypeGetAlignInBits(DIType *ds) {
-    return ds->getSizeInBits();
+    return ds->getAlignInBits();
+}
+
+unsigned LLVM_Hs_DITypeGetLine(DIType *ds) {
+    return ds->getAlignInBits();
 }
 
 unsigned LLVM_Hs_DIBasicTypeGetEncoding(DIBasicType *ds) {
     return ds->getEncoding();
+}
+
+DINodeArray LLVM_Hs_DICompositeTypeGetElements(DICompositeType *dt) {
+    return dt->getElements();
+}
+
+DITypeRef LLVM_Hs_DICompositeTypeGetVTableHolder(DICompositeType *dt) {
+    return dt->getVTableHolder();
+}
+
+DITypeRef LLVM_Hs_DICompositeTypeGetBaseType(DICompositeType *dt) {
+    return dt->getBaseType();
+}
+
+unsigned LLVM_Hs_DICompositeTypeGetRuntimeLang(DICompositeType *dt) {
+    return dt->getRuntimeLang();
+}
+
+DITemplateParameterArray LVM_Hs_DICompositeTypeGetTemplateParameters(DICompositeType *dt) {
+    return dt->getTemplateParams();
+}
+
+const char* LLVM_Hs_DICompositeTypeGetIdentifier(DICompositeType *dt, unsigned *len) {
+    StringRef s = dt->getIdentifier();
+    *len = s.size();
+    return s.data();
 }
 
 DILocalScope* LLVM_Hs_DILexicalBlockBaseGetScope(DILexicalBlockBase* bb) {
