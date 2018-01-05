@@ -69,38 +69,47 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
         scope <- decodeM (ptr)
 
         return $ A.DILocation line col scope
-      [mdSubclassIdP|DIEnumerator|] -> do
-        val <- liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr mdn)
-        nm  <- decodeM =<< (liftIO $ FFI.getEnumeratorName (castPtr mdn))
-
-        return $ A.DINode $ A.DIEnumerator val nm
-
-      [mdSubclassIdP|DIBasicType|] -> fail "DIBasicType"
-      [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
-      [mdSubclassIdP|DICompositeType|] -> fail "DICompositeType"
-      [mdSubclassIdP|DIDerivedType|] -> fail "DIDerivedType"
       [mdSubclassIdP|DIExpression|] -> fail "DIExpression"
-      [mdSubclassIdP|DIGlobalVariable|] -> fail "DIGlobalVariable"
       [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
-      [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
-      [mdSubclassIdP|DILexicalBlock|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DILexicalBlockFile|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DILocalVariable|] -> fail "DILocalVariable"
       [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
       [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
-      [mdSubclassIdP|DIModule|] -> fail "DIModule"
-      [mdSubclassIdP|DICompileUnit|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DIFile|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DINamespace|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DIObjCProperty|] -> fail "DIObjCProperty"
-      [mdSubclassIdP|DistinctMDOperandPlaceholder|] -> fail "DistinctMDOperandPlaceholder"
-      [mdSubclassIdP|DISubprogram|] -> A.DINode <$> A.DIScope <$> decodeM (castPtr mdn :: Ptr FFI.DIScope)
-      [mdSubclassIdP|DISubrange|] -> fail "DISubrange"
-      [mdSubclassIdP|DISubroutineType|] -> fail "DISubroutineType"
-      [mdSubclassIdP|DITemplateTypeParameter|] -> fail "DITemplateTypeParameter"
-      [mdSubclassIdP|DITemplateValueParameter|] -> fail "DITemplateValueParameter"
 
-      otherwise -> fail "omg"
+      otherwise -> A.DINode <$> decodeM (castPtr mdn :: Ptr FFI.DINode)
+
+instance DecodeM DecodeAST A.DINode (Ptr FFI.DINode) where
+  decodeM diN = do
+    sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast diN)
+    case sId of
+      [mdSubclassIdP|DIEnumerator|] -> do
+        val <- liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr diN)
+        nm  <- decodeM =<< (liftIO $ FFI.getEnumeratorName (castPtr diN))
+
+        return $ A.DIEnumerator val nm
+      [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
+      [mdSubclassIdP|DIObjCProperty|] -> fail "DIObjCProperty"
+      [mdSubclassIdP|DISubrange|] -> fail "DISubrange"
+
+      [mdSubclassIdP|DIBasicType|]        -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DICompositeType|]    -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DIDerivedType|]      -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DISubroutineType|]   -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DILexicalBlock|]     -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DILexicalBlockFile|] -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DIFile|]             -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DINamespace|]        -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DISubprogram|]       -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DICompileUnit|]      -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+      [mdSubclassIdP|DIModule|]           -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
+
+      [mdSubclassIdP|DIGlobalVariable|] -> A.DIVariable <$> decodeM (castPtr diN :: Ptr FFI.DIVariable)
+      [mdSubclassIdP|DILocalVariable|]  -> A.DIVariable <$> decodeM (castPtr diN :: Ptr FFI.DIVariable)
+
+      [mdSubclassIdP|DITemplateTypeParameter|]  -> A.DITemplateParameter <$> decodeM (castPtr diN :: Ptr FFI.DITemplateParameter)
+      [mdSubclassIdP|DITemplateValueParameter|] -> A.DITemplateParameter <$> decodeM (castPtr diN :: Ptr FFI.DITemplateParameter)
+
+      [mdSubclassIdP|DistinctMDOperandPlaceholder|] -> fail "DistinctMDOperandPlaceholder"
+
+      otherwise -> fail "not a valid DINode subclass id"
 
 instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
   decodeM p = do
@@ -112,7 +121,6 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
         name  <- getByteStringFromFFI FFI.getScopeName p
         exported <- liftIO $ FFI.getNamespaceExportedSymbols (FFI.upCast p)
         return $ A.DINamespace name scope exported
-      [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
       [mdSubclassIdP|DIFile|] -> do
         diFile <- decodeM (castPtr p :: Ptr FFI.DIFile)
         return $ A.DIFile diFile
@@ -120,7 +128,13 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
       [mdSubclassIdP|DILexicalBlockFile|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
       [mdSubclassIdP|DISubprogram|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
 
-      otherwise -> fail "DIScope"
+      [mdSubclassIdP|DIBasicType|]      -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
+      [mdSubclassIdP|DICompositeType|]  -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
+      [mdSubclassIdP|DIDerivedType|]    -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
+      [mdSubclassIdP|DISubroutineType|] -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
+      [mdSubclassIdP|DICompileUnit|]    -> fail "DICompileUnit"
+      [mdSubclassIdP|DIModule|]         -> fail "DIModule"
+      otherwise -> fail "Not a valid DIScope subclass ID"
 
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
   decodeM diF = do
@@ -188,6 +202,10 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           }
       [mdSubclassIdP|DIDerivedType|]    -> error "nyi"
       [mdSubclassIdP|DISubroutineType|] -> error "nyi"
+
+instance DecodeM DecodeAST A.DIVariable (Ptr FFI.DIVariable) where
+
+instance DecodeM DecodeAST A.DITemplateParameter (Ptr FFI.DITemplateParameter) where
 
 instance DecodeM DecodeAST [A.DINode] (Ptr FFI.DINodeArray) where
 

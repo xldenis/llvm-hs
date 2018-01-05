@@ -114,6 +114,16 @@ data DINode
 
 instance ChildOf MDNode DINode
 
+-- | https://llvm.org/doxygen/classllvm_1_1DIVariable.html
+data DIVariable
+
+instance ChildOf DINode DIVariable
+
+-- | https://llvm.org/doxygen/classllvm_1_1DITemplateParameter.html
+data DITemplateParameter
+
+instance ChildOf DINode DITemplateParameter
+
 -- | https://llvm.org/doxygen/classllvm_1_1DIScope.html
 data DIScope
 

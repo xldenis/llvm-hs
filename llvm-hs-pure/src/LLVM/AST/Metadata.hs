@@ -274,7 +274,7 @@ data DIVariable
   = DIGlobalVariable
     { variableFile :: DIFile
     , variableScope :: DIScope
-    , variableName :: Name
+    , variableName :: ShortByteString
     , variableLinkageName :: Name
     , variableLine :: Word32
     , variableType :: DIType
