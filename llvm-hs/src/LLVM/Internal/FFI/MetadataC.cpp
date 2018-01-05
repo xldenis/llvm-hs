@@ -262,11 +262,15 @@ DITypeRef LLVM_Hs_DICompositeTypeGetBaseType(DICompositeType *dt) {
     return dt->getBaseType();
 }
 
+DITypeRef LLVM_Hs_DIDerivedTypeGetBaseType(DIDerivedType *dt) {
+    return dt->getBaseType();
+}
+
 unsigned LLVM_Hs_DICompositeTypeGetRuntimeLang(DICompositeType *dt) {
     return dt->getRuntimeLang();
 }
 
-DITemplateParameterArray LVM_Hs_DICompositeTypeGetTemplateParameters(DICompositeType *dt) {
+DITemplateParameterArray LLVM_Hs_DICompositeTypeGetTemplateParameters(DICompositeType *dt) {
     return dt->getTemplateParams();
 }
 
@@ -290,6 +294,16 @@ unsigned LLVM_Hs_DILexicalBlockGetLine(DILexicalBlock* lb) {
 
 unsigned LLVM_Hs_DILexicalBlockGetColumn(DILexicalBlock* lb) {
     return lb->getColumn();
+}
+
+LLVMBool LLVM_Hs_DIDerivedTypeGetAddressSpace(DIDerivedType *a, unsigned *x) {
+    auto addressSpace = a->getDWARFAddressSpace();
+    if (addressSpace.hasValue()) {
+        *x = addressSpace.getValue();
+        return 1;
+    } else {
+        return 0;
+    }
 }
 }
 

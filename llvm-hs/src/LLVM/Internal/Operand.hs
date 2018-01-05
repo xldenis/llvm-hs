@@ -69,10 +69,10 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
         scope <- decodeM (ptr)
 
         return $ A.DILocation line col scope
-      [mdSubclassIdP|DIExpression|] -> fail "DIExpression"
+      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
       [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
-      [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
-      [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
+      [mdSubclassIdP|DIMacro|]                    -> fail "DIMacro"
+      [mdSubclassIdP|DIMacroFile|]                -> fail "DIMacroFile"
 
       otherwise -> A.DINode <$> decodeM (castPtr mdn :: Ptr FFI.DINode)
 
@@ -86,8 +86,8 @@ instance DecodeM DecodeAST A.DINode (Ptr FFI.DINode) where
 
         return $ A.DIEnumerator val nm
       [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
-      [mdSubclassIdP|DIObjCProperty|] -> fail "DIObjCProperty"
-      [mdSubclassIdP|DISubrange|] -> fail "DISubrange"
+      [mdSubclassIdP|DIObjCProperty|]   -> fail "DIObjCProperty"
+      [mdSubclassIdP|DISubrange|]       -> fail "DISubrange"
 
       [mdSubclassIdP|DIBasicType|]        -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
       [mdSubclassIdP|DICompositeType|]    -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
@@ -124,16 +124,17 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
       [mdSubclassIdP|DIFile|] -> do
         diFile <- decodeM (castPtr p :: Ptr FFI.DIFile)
         return $ A.DIFile diFile
-      [mdSubclassIdP|DILexicalBlock|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
+      [mdSubclassIdP|DILexicalBlock|]     -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
       [mdSubclassIdP|DILexicalBlockFile|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
-      [mdSubclassIdP|DISubprogram|] -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
+      [mdSubclassIdP|DISubprogram|]       -> A.DILocalScope <$> decodeM (castPtr p :: Ptr FFI.DILocalScope)
 
       [mdSubclassIdP|DIBasicType|]      -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
       [mdSubclassIdP|DICompositeType|]  -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
       [mdSubclassIdP|DIDerivedType|]    -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
       [mdSubclassIdP|DISubroutineType|] -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
-      [mdSubclassIdP|DICompileUnit|]    -> fail "DICompileUnit"
-      [mdSubclassIdP|DIModule|]         -> fail "DIModule"
+
+      [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
+      [mdSubclassIdP|DIModule|]      -> fail "DIModule"
       otherwise -> fail "Not a valid DIScope subclass ID"
 
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
@@ -200,8 +201,40 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           , A.typeTemplateParamters = tmplParams
           , A.typeIdentifier = tyIdent
           }
-      [mdSubclassIdP|DIDerivedType|]    -> error "nyi"
-      [mdSubclassIdP|DISubroutineType|] -> error "nyi"
+      [mdSubclassIdP|DIDerivedType|]    -> do
+        name <- getByteStringFromFFI FFI.getTypeName (castPtr diTy)
+
+        file   <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr diTy))
+        scope  <- decodeM =<< (liftIO $ FFI.getScopeScope (castPtr diTy))
+        baseTy <- decodeM =<< (liftIO $ FFI.getDerivedBaseType diTy)
+
+        line     <- fmap fromIntegral $ liftIO $ FFI.getTypeLine diTy
+        size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
+        align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
+        offset   <- fmap fromIntegral $ liftIO $ FFI.getTypeOffsetInBits diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getTypeTag diTy
+
+        flags <- fmap fromIntegral $ liftIO $ FFI.getTypeFlags diTy
+
+        x <- alloca
+
+        isJust <- liftIO $ FFI.getDerivedAddressSpace diTy x
+        x' <- peek x
+        addressSpace <- decodeM (x', isJust)
+        return $ A.DIDerivedType
+          { A.typeTag = tag
+          , A.typeName = name
+          , A.typeFile = file
+          , A.typeLine = line
+          , A.typeScope = scope
+          , A.typeBaseType = baseTy
+          , A.sizeInBits = size
+          , A.alignInBits = align
+          , A.offsetInBits = offset
+          , A.typeAddressSpace = addressSpace
+          , A.typeFlags = (A.toFlags flags)
+          }
+      [mdSubclassIdP|DISubroutineType|] -> error "DISubroutineType"
 
 instance DecodeM DecodeAST A.DIVariable (Ptr FFI.DIVariable) where
 

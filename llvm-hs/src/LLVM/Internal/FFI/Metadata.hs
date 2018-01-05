@@ -201,3 +201,9 @@ foreign import ccall unsafe "LLVM_Hs_DILexicalBlockGetLine" getLexicalBlockLine 
 
 foreign import ccall unsafe "LLVM_Hs_DILexicalBlockGetColumn" getLexicalBlockColumn ::
   Ptr DILexicalBlockBase -> IO (CUInt)
+
+foreign import ccall unsafe "LLVM_Hs_DIDerivedTypeGetBaseType" getDerivedBaseType ::
+  Ptr DIType -> IO (Ptr DIType)
+
+foreign import ccall unsafe "LLVM_Hs_DIDerivedTypeGetAddressSpace" getDerivedAddressSpace ::
+  Ptr DIType -> Ptr CUInt -> IO LLVMBool
