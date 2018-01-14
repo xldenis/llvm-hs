@@ -207,3 +207,17 @@ foreign import ccall unsafe "LLVM_Hs_DIDerivedTypeGetBaseType" getDerivedBaseTyp
 
 foreign import ccall unsafe "LLVM_Hs_DIDerivedTypeGetAddressSpace" getDerivedAddressSpace ::
   Ptr DIType -> Ptr CUInt -> IO LLVMBool
+
+foreign import ccall unsafe "LLVM_Hs_DISubroutineTypeGetCC" getSubroutineCC ::
+  Ptr DIType -> IO CUChar
+
+data DITypeRefArray
+
+-- foreign import ccall unsafe "LLVM_Hs_GetDISubroutineTypeArray" getSubroutineTypeArray ::
+--   Ptr DIType -> Ptr DITypeRefArray
+
+foreign import ccall unsafe "LLVM_Hs_DISubroutineTypeArrayLength" getSubroutineTypeArraySize ::
+  Ptr DIType -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_GetDISubroutineTypeArray" getSubroutineTypeArray ::
+  Ptr DIType -> Ptr (Ptr DIType) -> IO ()

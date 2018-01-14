@@ -305,5 +305,21 @@ LLVMBool LLVM_Hs_DIDerivedTypeGetAddressSpace(DIDerivedType *a, unsigned *x) {
         return 0;
     }
 }
+
+uint8_t LLVM_Hs_DISubroutineTypeGetCC(DISubroutineType *a) {
+    return a->getCC();
+}
+
+void LLVM_Hs_GetDISubroutineTypeArray(DISubroutineType *md, DITypeRef *dest) {
+    auto arr = md->getTypeArray();
+    const unsigned numOperands = arr.size();
+    for (unsigned i = 0; i < numOperands; i++)
+        dest[i] = arr[i];
+}
+
+unsigned LLVM_Hs_DISubroutineTypeArrayLength(DISubroutineType *a) {
+    return a->getTypeArray().size();
+}
+
 }
 

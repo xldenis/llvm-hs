@@ -234,7 +234,20 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           , A.typeAddressSpace = addressSpace
           , A.typeFlags = (A.toFlags flags)
           }
-      [mdSubclassIdP|DISubroutineType|] -> error "DISubroutineType"
+      [mdSubclassIdP|DISubroutineType|] -> do
+        flags <- fmap fromIntegral $ liftIO $ FFI.getTypeFlags diTy
+        cc <-  fmap fromIntegral $ liftIO $ FFI.getSubroutineCC diTy
+
+        n <- liftIO $ FFI.getSubroutineTypeArraySize diTy
+        ops <- allocaArray n
+        liftIO $ FFI.getSubroutineTypeArray diTy ops
+        arr <- decodeM (n, ops)
+
+        return $ A.DISubroutineType
+          { A.typeFlags = (A.toFlags flags)
+          , A.typeCC = cc
+          , A.typeTypeArray = arr
+          }
 
 instance DecodeM DecodeAST A.DIVariable (Ptr FFI.DIVariable) where
 
