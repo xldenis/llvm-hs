@@ -151,13 +151,13 @@ foreign import ccall unsafe "LLVM_Hs_DITypeGetOffsetInBits" getTypeOffsetInBits 
 foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetEncoding" getBasicTypeEncoding ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DITypeGetTag" getTypeTag ::
-  Ptr DIType -> IO CUInt
+foreign import ccall unsafe "LLVM_Hs_DINodeGetTag" getTag ::
+  Ptr DINode -> IO CUInt
 
 foreign import ccall unsafe "LLVM_Hs_DITypeGetLine" getTypeLine ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DITypeFlags" getTypeFlags ::
+foreign import ccall unsafe "LLVM_Hs_DITypeGetFlags" getTypeFlags ::
   Ptr DIType -> IO CUInt
 
 foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetElements" getElements ::

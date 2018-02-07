@@ -166,6 +166,14 @@ unsigned LLVM_Hs_GetMetadataClassId(LLVMMetadataRef md) {
     return (unwrap(md))->getMetadataID();
 }
 
+unsigned LLVM_Hs_DINodeGetTag(DINode *md) {
+    return md->getTag();
+}
+
+unsigned LLVM_Hs_DITypeGetFlags(DIType *md) {
+    return md->getFlags();
+}
+
 unsigned LLVM_Hs_DILocationGetLine(DILocation *md) {
     return md->getLine();
 }
