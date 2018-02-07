@@ -221,3 +221,6 @@ foreign import ccall unsafe "LLVM_Hs_DISubroutineTypeArrayLength" getSubroutineT
 
 foreign import ccall unsafe "LLVM_Hs_GetDISubroutineTypeArray" getSubroutineTypeArray ::
   Ptr DIType -> Ptr (Ptr DIType) -> IO ()
+
+foreign import ccall unsafe "LLVM_Hs_Get_DIBasicType" getDIBasicType ::
+  Ptr Context -> CUInt -> CString -> Word64 -> Word32 -> CUInt -> IO (Ptr DIType)

@@ -1,16 +1,21 @@
 {-# LANGUAGE
   MultiParamTypeClasses,
+  NamedFieldPuns,
   QuasiQuotes
   #-}
 module LLVM.Internal.Operand where
 
 import LLVM.Prelude
 
+import LLVM.Exception
+
+import Control.Monad.Catch
 import Control.Monad.State
 import Control.Monad.AnyCont
 import qualified Data.Map as Map
 
 import Foreign.Ptr
+import Foreign.C.Types
 
 import qualified LLVM.Internal.FFI.Constant as FFI
 import qualified LLVM.Internal.FFI.InlineAssembly as FFI
@@ -148,6 +153,37 @@ instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
 
     return $ A.File fname dir cksum (toEnum $ fromIntegral csk)
 
+instance Applicative m => EncodeM m A.Encoding CUInt where
+  -- TODO generate this based on LLVM’s HANDLE_DW_ATE macro
+  encodeM e = pure $
+    case e of
+      A.AddressEncoding -> 1
+      A.BooleanEncoding -> 2
+      A.FloatEncoding -> 4
+      A.SignedEncoding -> 5
+      A.SignedCharEncoding -> 6
+      A.UnsignedEncoding -> 7
+      A.UnsignedCharEncoding -> 8
+
+instance MonadThrow m => DecodeM m A.Encoding CUInt where
+  decodeM e =
+    case e of
+      1 -> pure A.AddressEncoding
+      2 -> pure A.BooleanEncoding
+      4 -> pure A.FloatEncoding
+      5 -> pure A.SignedEncoding
+      6 -> pure A.SignedCharEncoding
+      7 -> pure A.UnsignedEncoding
+      8 -> pure A.UnsignedCharEncoding
+      _ -> throwM (DecodeException ("Unknown DI encoding: " <> show e))
+
+instance EncodeM EncodeAST A.DIType (Ptr FFI.DIType) where
+  encodeM (A.DIBasicType {A.typeName, A.sizeInBits, A.alignInBits, A.typeEncoding, A.typeTag}) = do
+    typeName <- encodeM typeName
+    typeEncoding <- encodeM typeEncoding
+    Context c <- gets encodeStateContext
+    liftIO (FFI.getDIBasicType c (fromIntegral typeTag) typeName sizeInBits alignInBits typeEncoding)
+
 instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
   decodeM diTy = do
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast diTy)
@@ -158,10 +194,9 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
 
         size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
         align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
-        encoding <- fmap fromIntegral $ liftIO $ FFI.getBasicTypeEncoding diTy
+        encoding <- decodeM =<< liftIO (FFI.getBasicTypeEncoding diTy)
         tag      <- fmap fromIntegral $ liftIO $ FFI.getTag (FFI.upCast diTy)
-
-        return $ A.DIBasicType name size align (A.toEncoding encoding) tag
+        return $ A.DIBasicType name size align encoding tag
       [mdSubclassIdP|DICompositeType|]  -> do
         name <- getByteStringFromFFI FFI.getTypeName (castPtr diTy)
 
