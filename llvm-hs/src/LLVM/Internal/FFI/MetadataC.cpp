@@ -166,6 +166,14 @@ unsigned LLVM_Hs_GetMetadataClassId(LLVMMetadataRef md) {
     return (unwrap(md))->getMetadataID();
 }
 
+unsigned LLVM_Hs_DINodeGetTag(DINode *md) {
+    return md->getTag();
+}
+
+unsigned LLVM_Hs_DITypeGetFlags(DIType *md) {
+    return md->getFlags();
+}
+
 unsigned LLVM_Hs_DILocationGetLine(DILocation *md) {
     return md->getLine();
 }
@@ -246,6 +254,9 @@ unsigned LLVM_Hs_DITypeGetLine(DIType *ds) {
     return ds->getAlignInBits();
 }
 
+DIBasicType* LLVM_Hs_Get_DIBasicType(LLVMContextRef ctx, unsigned tag, const char *name, uint64_t sizeInBits, uint32_t alignInBits, unsigned encoding) {
+    return DIBasicType::get(*unwrap(ctx), tag, name, sizeInBits, alignInBits, encoding);
+}
 unsigned LLVM_Hs_DIBasicTypeGetEncoding(DIBasicType *ds) {
     return ds->getEncoding();
 }
