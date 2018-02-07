@@ -3,7 +3,7 @@
 
 enum {
 #define HANDLE_METADATA_LEAF(CLASS) CLASS##Kind,
-#include "llvm/ir/Metadata.def"
+#include "llvm/IR/Metadata.def"
 #undef HANDLE_METADATA_LEAF
 } MetadataSubclassId;
 

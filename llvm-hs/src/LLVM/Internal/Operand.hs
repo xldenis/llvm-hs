@@ -159,7 +159,7 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
         size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
         align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
         encoding <- fmap fromIntegral $ liftIO $ FFI.getBasicTypeEncoding diTy
-        tag      <- fmap fromIntegral $ liftIO $ FFI.getTypeTag diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getTag (FFI.upCast diTy)
 
         return $ A.DIBasicType name size align (A.toEncoding encoding) tag
       [mdSubclassIdP|DICompositeType|]  -> do
@@ -173,7 +173,7 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
         size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
         align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
         offset   <- fmap fromIntegral $ liftIO $ FFI.getTypeOffsetInBits diTy
-        tag      <- fmap fromIntegral $ liftIO $ FFI.getTypeTag diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getTag (FFI.upCast diTy)
 
         flags <- fmap fromIntegral $ liftIO $ FFI.getTypeFlags diTy
         els   <- decodeM =<< (liftIO $ FFI.getElements diTy)
@@ -212,7 +212,7 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
         size     <- fmap fromIntegral $ liftIO $ FFI.getTypeSizeInBits diTy
         align    <- fmap fromIntegral $ liftIO $ FFI.getTypeAlignInBits diTy
         offset   <- fmap fromIntegral $ liftIO $ FFI.getTypeOffsetInBits diTy
-        tag      <- fmap fromIntegral $ liftIO $ FFI.getTypeTag diTy
+        tag      <- fmap fromIntegral $ liftIO $ FFI.getTag (FFI.upCast diTy)
 
         flags <- fmap fromIntegral $ liftIO $ FFI.getTypeFlags diTy
 
