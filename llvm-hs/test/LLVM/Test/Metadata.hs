@@ -1,10 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 module LLVM.Test.Metadata where
 
+import LLVM.Prelude
+
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
+import Test.QuickCheck
 
 import LLVM.Test.Support
+
+import Control.Monad.IO.Class
+import Data.ByteString as B (readFile)
+import qualified Data.ByteString.Short as BSS
+import Foreign.Ptr
 
 import LLVM.AST as A
 import LLVM.AST.Type as A.T
@@ -17,17 +26,63 @@ import LLVM.AST.Global as G
 
 import LLVM.Context
 import LLVM.Module
-
-import Data.ByteString as B (readFile)
+import LLVM.Internal.Coding
+import LLVM.Internal.DecodeAST
+import LLVM.Internal.EncodeAST
+import qualified LLVM.Internal.FFI.PtrHierarchy as FFI
 
 tests = testGroup "Metadata"
   [ globalMetadata
   , namedMetadata
   , nullMetadata
   , cyclicMetadata
+  , roundtripDIType
+  , roundtripDIFile
   , diNode
   ]
 
+arbitrarySbs :: Gen ShortByteString
+arbitrarySbs = BSS.pack <$> listOf (arbitrary `suchThat` (/= 0))
+
+instance Arbitrary Encoding where
+  arbitrary =
+    elements
+      [ AddressEncoding
+      , BooleanEncoding
+      , FloatEncoding
+      , SignedEncoding
+      , SignedCharEncoding
+      , UnsignedEncoding
+      , UnsignedCharEncoding
+      ]
+
+instance Arbitrary ChecksumKind where
+  arbitrary = elements [None, MD5, SHA1]
+
+instance Arbitrary DIType where
+  arbitrary =
+    oneof
+      [ DIBasicType <$> arbitrarySbs <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+      -- TODO: Add DICompositeType, DIDerivedType and DISubroutineType
+      ]
+
+instance Arbitrary DIFile where
+  arbitrary =
+    A.File <$> arbitrarySbs <*> arbitrarySbs <*> arbitrarySbs <*> arbitrary
+
+roundtripDIType :: TestTree
+roundtripDIType = testProperty "roundtrip DIType" $ \diType -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDIType <- encodeM (diType :: DIType)
+    decodedDIType <- liftIO (runDecodeAST (decodeM (encodedDIType :: Ptr FFI.DIType)))
+    pure (decodedDIType === diType)
+
+roundtripDIFile :: TestTree
+roundtripDIFile = testProperty "roundtrip DIFile" $ \diFile -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDIFile <- encodeM (diFile :: DIFile)
+    decodedDIFile <- liftIO (runDecodeAST (decodeM (encodedDIFile :: Ptr FFI.DIFile)))
+    pure (decodedDIFile === diFile)
 
 diNode = testCase "dinodes" $ do
   fStr <- B.readFile "test/module.ll"

@@ -120,8 +120,8 @@ data DIFile = File
   , checksumKind :: ChecksumKind
   } deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
-data ChecksumKind = None | MD5 | SHA1 | Last
-  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic, Enum)
+data ChecksumKind = None | MD5 | SHA1
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DILocalScope
   = DILexicalBlockBase DILexicalBlockBase
@@ -158,12 +158,12 @@ data DIType
     , sizeInBits :: Word64
     , alignInBits :: Word32
     , typeEncoding :: Encoding
-    , typeTag :: Word32
+    , typeTag :: Word16
     }
   -- | <https://llvm.org/docs/LangRef.html#dicompositetype>
   -- | <https://llvm.org/doxygen/classllvm_1_1DICompositeType.html>
   | DICompositeType
-    { typeTag :: Word32
+    { typeTag :: Word16
     , typeName :: ShortByteString
     , typeFile :: DIFile
     , typeLine :: Word32
@@ -182,7 +182,7 @@ data DIType
   -- | <https://llvm.org/docs/LangRef.html#diderivedtype>
   -- | <https://llvm.org/doxygen/classllvm_1_1DIDerivedType.html>
   | DIDerivedType
-    { typeTag :: Word32
+    { typeTag :: Word16
     , typeName :: ShortByteString
     , typeFile :: DIFile
     , typeLine :: Word32
@@ -225,6 +225,7 @@ data EnumerationType
   | UnionEnumeration
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
+-- TODO: Consider dropping this type since LLVM allows for other attribute types.
 data Encoding
   = AddressEncoding
   | BooleanEncoding
@@ -234,14 +235,6 @@ data Encoding
   | UnsignedEncoding
   | UnsignedCharEncoding
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
-
-toEncoding 1 = AddressEncoding
-toEncoding 2 = BooleanEncoding
-toEncoding 4 = FloatEncoding
-toEncoding 5 = SignedEncoding
-toEncoding 6 = SignedCharEncoding
-toEncoding 7 = UnsignedEncoding
-toEncoding 8 = UnsignedCharEncoding
 
 data DITemplateParameter
   -- | https://llvm.org/docs/LangRef.html#ditemplatetypeparameter

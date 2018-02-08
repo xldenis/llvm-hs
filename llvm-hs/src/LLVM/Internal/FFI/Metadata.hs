@@ -151,13 +151,13 @@ foreign import ccall unsafe "LLVM_Hs_DITypeGetOffsetInBits" getTypeOffsetInBits 
 foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetEncoding" getBasicTypeEncoding ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DITypeGetTag" getTypeTag ::
-  Ptr DIType -> IO CUInt
+foreign import ccall unsafe "LLVM_Hs_DINodeGetTag" getTag ::
+  Ptr DINode -> IO CUInt
 
 foreign import ccall unsafe "LLVM_Hs_DITypeGetLine" getTypeLine ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DITypeFlags" getTypeFlags ::
+foreign import ccall unsafe "LLVM_Hs_DITypeGetFlags" getTypeFlags ::
   Ptr DIType -> IO CUInt
 
 foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetElements" getElements ::
@@ -221,3 +221,11 @@ foreign import ccall unsafe "LLVM_Hs_DISubroutineTypeArrayLength" getSubroutineT
 
 foreign import ccall unsafe "LLVM_Hs_GetDISubroutineTypeArray" getSubroutineTypeArray ::
   Ptr DIType -> Ptr (Ptr DIType) -> IO ()
+
+-- TODO: Check if ownership of strings is handled correctly.
+foreign import ccall unsafe "LLVM_Hs_Get_DIBasicType" getDIBasicType ::
+  Ptr Context -> CUInt -> CString -> Word64 -> Word32 -> CUInt -> IO (Ptr DIType)
+
+-- TODO: Check if ownership of strings is handled correctly.
+foreign import ccall unsafe "LLVM_Hs_Get_DIFile" getDIFile ::
+  Ptr Context -> CString -> CString -> CUInt -> CString -> IO (Ptr DIFile)
