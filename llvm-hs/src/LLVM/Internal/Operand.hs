@@ -145,13 +145,20 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
   decodeM diF = do
     when (diF == nullPtr) $ error "crashing for now."
-    fname <- decodeM =<< (liftIO $ FFI.getFileFilename diF)
+    fname <- decodeM =<< liftIO (FFI.getFileFilename diF)
+    dir   <- decodeM =<< liftIO (FFI.getFileDirectory diF)
+    cksum <- decodeM =<< liftIO (FFI.getFileChecksum diF)
+    csk   <- decodeM =<< liftIO (FFI.getFileEnumeratorName diF)
+    return $ A.File fname dir cksum csk
 
-    dir   <- decodeM =<< (liftIO $ FFI.getFileDirectory diF)
-    cksum <- decodeM =<< (liftIO $ FFI.getFileChecksum diF)
-    csk   <-             (liftIO $ FFI.getFileEnumeratorName diF)
-
-    return $ A.File fname dir cksum (toEnum $ fromIntegral csk)
+instance EncodeM EncodeAST A.DIFile (Ptr FFI.DIFile) where
+  encodeM (A.File {A.filename, A.directory, A.checksum, A.checksumKind}) = do
+    filename <- encodeM filename
+    directory <- encodeM directory
+    checksum <- encodeM checksum
+    checksumKind <- encodeM checksumKind
+    Context c <- gets encodeStateContext
+    liftIO (FFI.getDIFile c filename directory checksumKind checksum)
 
 instance Applicative m => EncodeM m A.Encoding CUInt where
   -- TODO generate this based on LLVM’s HANDLE_DW_ATE macro
@@ -176,6 +183,21 @@ instance MonadThrow m => DecodeM m A.Encoding CUInt where
       7 -> pure A.UnsignedEncoding
       8 -> pure A.UnsignedCharEncoding
       _ -> throwM (DecodeException ("Unknown DI encoding: " <> show e))
+
+instance Applicative m => EncodeM m A.ChecksumKind CUInt where
+  encodeM k = pure $
+    case k of
+      A.None -> 0
+      A.MD5 -> 1
+      A.SHA1 -> 2
+
+instance MonadThrow m => DecodeM m A.ChecksumKind CUInt where
+  decodeM k =
+    case k of
+      0 -> pure A.None
+      1 -> pure A.MD5
+      2 -> pure A.SHA1
+      _ -> throwM (DecodeException ("Unknown ChecksumKind: " <> show k))
 
 instance EncodeM EncodeAST A.DIType (Ptr FFI.DIType) where
   encodeM (A.DIBasicType {A.typeName, A.sizeInBits, A.alignInBits, A.typeEncoding, A.typeTag}) = do

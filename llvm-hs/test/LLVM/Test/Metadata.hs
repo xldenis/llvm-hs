@@ -37,6 +37,7 @@ tests = testGroup "Metadata"
   , nullMetadata
   , cyclicMetadata
   , roundtripDIType
+  , roundtripDIFile
   , diNode
   ]
 
@@ -55,6 +56,9 @@ instance Arbitrary Encoding where
       , UnsignedCharEncoding
       ]
 
+instance Arbitrary ChecksumKind where
+  arbitrary = elements [None, MD5, SHA1]
+
 instance Arbitrary DIType where
   arbitrary =
     oneof
@@ -62,11 +66,23 @@ instance Arbitrary DIType where
       -- TODO: Add DICompositeType, DIDerivedType and DISubroutineType
       ]
 
+instance Arbitrary DIFile where
+  arbitrary =
+    A.File <$> arbitrarySbs <*> arbitrarySbs <*> arbitrarySbs <*> arbitrary
+
+roundtripDIType :: TestTree
 roundtripDIType = testProperty "roundtrip DIType" $ \diType -> ioProperty $
   withContext $ \context -> runEncodeAST context $ do
     encodedDIType <- encodeM (diType :: DIType)
     decodedDIType <- liftIO (runDecodeAST (decodeM (encodedDIType :: Ptr FFI.DIType)))
     pure (decodedDIType === diType)
+
+roundtripDIFile :: TestTree
+roundtripDIFile = testProperty "roundtrip DIFile" $ \diFile -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDIFile <- encodeM (diFile :: DIFile)
+    decodedDIFile <- liftIO (runDecodeAST (decodeM (encodedDIFile :: Ptr FFI.DIFile)))
+    pure (decodedDIFile === diFile)
 
 diNode = testCase "dinodes" $ do
   fStr <- B.readFile "test/module.ll"

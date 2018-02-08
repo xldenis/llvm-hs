@@ -121,7 +121,7 @@ data DIFile = File
   } deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data ChecksumKind = None | MD5 | SHA1
-  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic, Enum)
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DILocalScope
   = DILexicalBlockBase DILexicalBlockBase
