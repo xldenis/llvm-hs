@@ -76,7 +76,7 @@ data DINode
     }
   | DIScope DIScope
   -- | <https://llvm.org/doxygen/classllvm_1_1DISubrange.html>
-  | DISubrange { nodeCount :: Word64, nodeLowerBound :: Word64 }
+  | DISubrange { nodeCount :: Int64, nodeLowerBound :: Int64 }
   | DITemplateParameter DITemplateParameter
   | DIVariable DIVariable
   | GenericDINode -- idk yet

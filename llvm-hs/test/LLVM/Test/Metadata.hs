@@ -38,6 +38,7 @@ tests = testGroup "Metadata"
   , cyclicMetadata
   , roundtripDIType
   , roundtripDIFile
+  , roundtripDINode
   , diNode
   ]
 
@@ -70,6 +71,13 @@ instance Arbitrary DIFile where
   arbitrary =
     A.File <$> arbitrarySbs <*> arbitrarySbs <*> arbitrarySbs <*> arbitrary
 
+instance Arbitrary DINode where
+  arbitrary =
+    oneof
+      [ DISubrange <$> arbitrary <*> arbitrary
+      -- TODO: Add missing constructors
+      ]
+
 roundtripDIType :: TestTree
 roundtripDIType = testProperty "roundtrip DIType" $ \diType -> ioProperty $
   withContext $ \context -> runEncodeAST context $ do
@@ -83,6 +91,13 @@ roundtripDIFile = testProperty "roundtrip DIFile" $ \diFile -> ioProperty $
     encodedDIFile <- encodeM (diFile :: DIFile)
     decodedDIFile <- liftIO (runDecodeAST (decodeM (encodedDIFile :: Ptr FFI.DIFile)))
     pure (decodedDIFile === diFile)
+
+roundtripDINode :: TestTree
+roundtripDINode = testProperty "roundtrip DINode" $ \diNode -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDINode <- encodeM (diNode :: DINode)
+    decodedDINode <- liftIO (runDecodeAST (decodeM (encodedDINode :: Ptr FFI.DINode)))
+    pure (decodedDINode === diNode)
 
 diNode = testCase "dinodes" $ do
   fStr <- B.readFile "test/module.ll"

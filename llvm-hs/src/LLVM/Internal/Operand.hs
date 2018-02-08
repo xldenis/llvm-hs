@@ -92,8 +92,10 @@ instance DecodeM DecodeAST A.DINode (Ptr FFI.DINode) where
         return $ A.DIEnumerator val nm
       [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
       [mdSubclassIdP|DIObjCProperty|]   -> fail "DIObjCProperty"
-      [mdSubclassIdP|DISubrange|]       -> fail "DISubrange"
-
+      [mdSubclassIdP|DISubrange|]       -> do
+        count <- liftIO (FFI.getDISubrangeCount diN)
+        lowerBound <- liftIO (FFI.getDISubrangeLowerBound diN)
+        pure (A.DISubrange count lowerBound)
       [mdSubclassIdP|DIBasicType|]        -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
       [mdSubclassIdP|DICompositeType|]    -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
       [mdSubclassIdP|DIDerivedType|]      -> A.DIScope <$> decodeM (castPtr diN :: Ptr FFI.DIScope)
@@ -115,6 +117,11 @@ instance DecodeM DecodeAST A.DINode (Ptr FFI.DINode) where
       [mdSubclassIdP|DistinctMDOperandPlaceholder|] -> fail "DistinctMDOperandPlaceholder"
 
       otherwise -> fail "not a valid DINode subclass id"
+
+instance EncodeM EncodeAST A.DINode (Ptr FFI.DINode) where
+  encodeM (A.DISubrange { A.nodeCount, A.nodeLowerBound }) = do
+    Context c <- gets encodeStateContext
+    liftIO (FFI.getDISubrange c nodeCount nodeLowerBound)
 
 instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
   decodeM p = do

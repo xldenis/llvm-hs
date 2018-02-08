@@ -254,12 +254,24 @@ unsigned LLVM_Hs_DITypeGetLine(DIType *ds) {
     return ds->getAlignInBits();
 }
 
-DIBasicType* LLVM_Hs_Get_DIBasicType(LLVMContextRef ctx, unsigned tag, const char *name, uint64_t sizeInBits, uint32_t alignInBits, unsigned encoding) {
+DIType* LLVM_Hs_Get_DIBasicType(LLVMContextRef ctx, unsigned tag, const char *name, uint64_t sizeInBits, uint32_t alignInBits, unsigned encoding) {
     return DIBasicType::get(*unwrap(ctx), tag, name, sizeInBits, alignInBits, encoding);
 }
 
 DIFile* LLVM_Hs_Get_DIFile(LLVMContextRef ctx, const char* filename, const char* directory, unsigned checksumKind, const char* checksum) {
     return DIFile::get(*unwrap(ctx), filename, directory, static_cast<DIFile::ChecksumKind>(checksumKind), checksum);
+}
+
+DINode* LLVM_Hs_Get_DISubrange(LLVMContextRef ctx, int64_t count, int64_t lowerBound) {
+    return DISubrange::get(*unwrap(ctx), count, lowerBound);
+}
+
+int64_t LLVM_Hs_DISubrange_GetCount(DISubrange* range) {
+    return range->getCount();
+}
+
+int64_t LLVM_Hs_DISubrange_GetLowerBound(DISubrange* range) {
+    return range->getLowerBound();
 }
 
 unsigned LLVM_Hs_DIBasicTypeGetEncoding(DIBasicType *ds) {

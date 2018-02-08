@@ -229,3 +229,12 @@ foreign import ccall unsafe "LLVM_Hs_Get_DIBasicType" getDIBasicType ::
 -- TODO: Check if ownership of strings is handled correctly.
 foreign import ccall unsafe "LLVM_Hs_Get_DIFile" getDIFile ::
   Ptr Context -> CString -> CString -> CUInt -> CString -> IO (Ptr DIFile)
+
+foreign import ccall unsafe "LLVM_Hs_Get_DISubrange" getDISubrange ::
+  Ptr Context -> Int64 -> Int64 -> IO (Ptr DINode)
+
+foreign import ccall unsafe "LLVM_Hs_DISubrange_GetCount" getDISubrangeCount ::
+  Ptr DINode -> IO Int64
+
+foreign import ccall unsafe "LLVM_Hs_DISubrange_GetLowerBound" getDISubrangeLowerBound ::
+  Ptr DINode -> IO Int64
