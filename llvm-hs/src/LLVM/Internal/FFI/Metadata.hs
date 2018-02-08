@@ -115,11 +115,18 @@ foreign import ccall unsafe "LLVM_Hs_MetadataReplaceAllUsesWith" metadataReplace
 namedMetadataAddOperands :: Ptr NamedMetadata -> (CUInt, Ptr (Ptr MDNode)) -> IO ()
 namedMetadataAddOperands nm (n, vs) = namedMetadataAddOperands' nm vs n
 
-foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetValue" getEnumeratorValue ::
-  Ptr DINode -> IO CLong
+-- DIEnumerator
 
-foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetName" getEnumeratorName ::
-  Ptr MDString -> IO (Ptr MDString)
+-- TODO: Check string ownership
+foreign import ccall unsafe "LLVM_Hs_Get_DIEnumerator" getDIEnumerator ::
+  Ptr Context -> Int64 -> CString -> IO (Ptr DINode)
+
+foreign import ccall unsafe "LLVM_Hs_DIEnumerator_GetValue" getDIEnumeratorValue ::
+  Ptr DINode -> IO Int64
+
+foreign import ccall unsafe "LLVM_Hs_DIEnumerator_GetName" getDIEnumeratorName ::
+  Ptr DINode -> IO CString
+
 
 foreign import ccall unsafe "LLVM_Hs_DIFileGetFilename" getFileFilename ::
   Ptr DIFile -> IO (Ptr MDString)
@@ -230,6 +237,7 @@ foreign import ccall unsafe "LLVM_Hs_Get_DIBasicType" getDIBasicType ::
 foreign import ccall unsafe "LLVM_Hs_Get_DIFile" getDIFile ::
   Ptr Context -> CString -> CString -> CUInt -> CString -> IO (Ptr DIFile)
 
+-- DISubrange
 foreign import ccall unsafe "LLVM_Hs_Get_DISubrange" getDISubrange ::
   Ptr Context -> Int64 -> Int64 -> IO (Ptr DINode)
 

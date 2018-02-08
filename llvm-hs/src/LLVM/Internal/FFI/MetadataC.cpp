@@ -186,12 +186,16 @@ DILocalScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
     return md->getScope();
 }
 
-int64_t LLVM_Hs_DIEnumeratorGetValue(LLVMMetadataRef md) {
+DINode* LLVM_Hs_Get_DIEnumerator(LLVMContextRef c, int64_t value, const char* name) {
+    return DIEnumerator::get(*unwrap(c), value, name);
+}
+
+int64_t LLVM_Hs_DIEnumerator_GetValue(LLVMMetadataRef md) {
     return unwrap<DIEnumerator>(md)->getValue();
 }
 
-MDString* LLVM_Hs_DIEnumeratorGetName(LLVMMetadataRef md, unsigned *len) {
-    return unwrap<DIEnumerator>(md)->getRawName();
+const char* LLVM_Hs_DIEnumerator_GetName(LLVMMetadataRef md) {
+    return unwrap<DIEnumerator>(md)->getName().data();
 }
 
 MDString* LLVM_Hs_DIFileGetFilename(DIFile *di) {

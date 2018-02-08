@@ -75,6 +75,7 @@ instance Arbitrary DINode where
   arbitrary =
     oneof
       [ DISubrange <$> arbitrary <*> arbitrary
+      , DIEnumerator <$> arbitrary <*> arbitrarySbs
       -- TODO: Add missing constructors
       ]
 

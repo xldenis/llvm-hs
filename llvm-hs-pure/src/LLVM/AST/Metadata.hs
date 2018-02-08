@@ -54,7 +54,7 @@ data DIMacroNode
 
 data DINode
   -- | <https://llvm.org/doxygen/classllvm_1_1DIEnumerator.html>
-  = DIEnumerator { nodeValue :: Word64, nodeName :: ShortByteString }
+  = DIEnumerator { nodeValue :: Int64, nodeName :: ShortByteString }
   -- | <https://llvm.org/doxygen/classllvm_1_1DIImportedEntity.html>
   | DIImportedEntity
     { nodeTag :: Word32

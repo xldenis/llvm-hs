@@ -86,10 +86,9 @@ instance DecodeM DecodeAST A.DINode (Ptr FFI.DINode) where
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast diN)
     case sId of
       [mdSubclassIdP|DIEnumerator|] -> do
-        val <- liftIO $ fromIntegral <$> FFI.getEnumeratorValue (castPtr diN)
-        nm  <- decodeM =<< (liftIO $ FFI.getEnumeratorName (castPtr diN))
-
-        return $ A.DIEnumerator val nm
+        value <- liftIO (FFI.getDIEnumeratorValue diN)
+        name <- decodeM =<< liftIO (FFI.getDIEnumeratorName diN)
+        return $ A.DIEnumerator value name
       [mdSubclassIdP|DIImportedEntity|] -> fail "DIImportedEntity"
       [mdSubclassIdP|DIObjCProperty|]   -> fail "DIObjCProperty"
       [mdSubclassIdP|DISubrange|]       -> do
@@ -122,6 +121,10 @@ instance EncodeM EncodeAST A.DINode (Ptr FFI.DINode) where
   encodeM (A.DISubrange { A.nodeCount, A.nodeLowerBound }) = do
     Context c <- gets encodeStateContext
     liftIO (FFI.getDISubrange c nodeCount nodeLowerBound)
+  encodeM (A.DIEnumerator { A.nodeValue, A.nodeName }) = do
+    name <- encodeM nodeName
+    Context c <- gets encodeStateContext
+    liftIO (FFI.getDIEnumerator c nodeValue name)
 
 instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
   decodeM p = do
