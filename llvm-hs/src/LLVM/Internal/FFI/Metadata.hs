@@ -117,7 +117,6 @@ namedMetadataAddOperands nm (n, vs) = namedMetadataAddOperands' nm vs n
 
 -- DIEnumerator
 
--- TODO: Check string ownership
 foreign import ccall unsafe "LLVM_Hs_Get_DIEnumerator" getDIEnumerator ::
   Ptr Context -> Int64 -> CString -> IO (Ptr DINode)
 
@@ -229,11 +228,9 @@ foreign import ccall unsafe "LLVM_Hs_DISubroutineTypeArrayLength" getSubroutineT
 foreign import ccall unsafe "LLVM_Hs_GetDISubroutineTypeArray" getSubroutineTypeArray ::
   Ptr DIType -> Ptr (Ptr DIType) -> IO ()
 
--- TODO: Check if ownership of strings is handled correctly.
 foreign import ccall unsafe "LLVM_Hs_Get_DIBasicType" getDIBasicType ::
   Ptr Context -> CUInt -> CString -> Word64 -> Word32 -> CUInt -> IO (Ptr DIType)
 
--- TODO: Check if ownership of strings is handled correctly.
 foreign import ccall unsafe "LLVM_Hs_Get_DIFile" getDIFile ::
   Ptr Context -> CString -> CString -> CUInt -> CString -> IO (Ptr DIFile)
 

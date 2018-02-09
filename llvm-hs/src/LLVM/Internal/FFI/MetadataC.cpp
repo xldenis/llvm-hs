@@ -186,8 +186,9 @@ DILocalScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
     return md->getScope();
 }
 
-DINode* LLVM_Hs_Get_DIEnumerator(LLVMContextRef c, int64_t value, const char* name) {
-    return DIEnumerator::get(*unwrap(c), value, name);
+DINode* LLVM_Hs_Get_DIEnumerator(LLVMContextRef cxt, int64_t value, const char* name) {
+    LLVMContext& c = *unwrap(cxt);
+    return DIEnumerator::get(c, value, MDString::get(c, name));
 }
 
 int64_t LLVM_Hs_DIEnumerator_GetValue(LLVMMetadataRef md) {
@@ -259,11 +260,13 @@ unsigned LLVM_Hs_DITypeGetLine(DIType *ds) {
 }
 
 DIType* LLVM_Hs_Get_DIBasicType(LLVMContextRef ctx, unsigned tag, const char *name, uint64_t sizeInBits, uint32_t alignInBits, unsigned encoding) {
-    return DIBasicType::get(*unwrap(ctx), tag, name, sizeInBits, alignInBits, encoding);
+    LLVMContext& c = *unwrap(ctx);
+    return DIBasicType::get(c, tag, MDString::get(c, name), sizeInBits, alignInBits, encoding);
 }
 
 DIFile* LLVM_Hs_Get_DIFile(LLVMContextRef ctx, const char* filename, const char* directory, unsigned checksumKind, const char* checksum) {
-    return DIFile::get(*unwrap(ctx), filename, directory, static_cast<DIFile::ChecksumKind>(checksumKind), checksum);
+    LLVMContext& c = *unwrap(ctx);
+    return DIFile::get(c, MDString::get(c, filename), MDString::get(c, directory), static_cast<DIFile::ChecksumKind>(checksumKind), MDString::get(c, checksum));
 }
 
 DINode* LLVM_Hs_Get_DISubrange(LLVMContextRef ctx, int64_t count, int64_t lowerBound) {
