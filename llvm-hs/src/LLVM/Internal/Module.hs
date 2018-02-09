@@ -277,14 +277,14 @@ withModuleFromAST context@(Context c) (A.Module moduleId sourceFileName dataLayo
      t <- liftIO $ FFI.createTemporaryMDNodeInContext context
      defineMDNode i t
      return $ do
-       n <- encodeM (A.MetadataTuple os)
+       n <- encodeM (A.MDTuple os)
        liftIO $ FFI.metadataReplaceAllUsesWith (FFI.upCast t) (FFI.upCast n)
        defineMDNode i n
        return $ return ()
 
    A.NamedMetadataDefinition n ids -> return . return . return . return $ do
      n <- encodeM n
-     ids <- encodeM (map A.MetadataNodeReference ids :: [A.MetadataNode])
+     ids <- encodeM (map A.MetadataNodeReference ids :: [A.MDNode])
      nm <- liftIO $ FFI.getOrAddNamedMetadata ffiMod n
      liftIO $ FFI.namedMetadataAddOperands nm ids
      return ()
@@ -483,7 +483,7 @@ decodeNamedMetadataDefinitions mod = do
         <$> (decodeM $ FFI.getNamedMetadataName nm)
         <*> fmap
               (map (\(A.MetadataNodeReference mid) -> mid))
-              (decodeM (n, os) :: DecodeAST [A.MetadataNode])
+              (decodeM (n, os) :: DecodeAST [A.MDNode])
 
 -- | Get an LLVM.AST.'LLVM.AST.Module' from a LLVM.'Module' - i.e.
 -- raise C++ objects into an Haskell AST.

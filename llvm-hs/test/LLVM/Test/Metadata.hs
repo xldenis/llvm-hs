@@ -39,7 +39,7 @@ tests = testGroup "Metadata"
   , roundtripDIType
   , roundtripDIFile
   , roundtripDINode
-  , diNode
+  , testFile
   ]
 
 arbitrarySbs :: Gen ShortByteString
@@ -100,7 +100,8 @@ roundtripDINode = testProperty "roundtrip DINode" $ \diNode -> ioProperty $
     decodedDINode <- liftIO (runDecodeAST (decodeM (encodedDINode :: Ptr FFI.DINode)))
     pure (decodedDINode === diNode)
 
-diNode = testCase "dinodes" $ do
+testFile :: TestTree
+testFile = testCase "parse and decode test/module.ll" $ do
   fStr <- B.readFile "test/module.ll"
   withContext $ \context -> do
     a <- withModuleFromLLVMAssembly' context fStr moduleAST

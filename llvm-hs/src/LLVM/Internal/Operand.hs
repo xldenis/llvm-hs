@@ -63,24 +63,6 @@ instance DecodeM DecodeAST A.Metadata (Ptr FFI.Metadata) where
                       then A.MDValue <$> decodeM v
                       else fail "Metadata was not one of [MDString, MDValue, MDNode]"
 
-instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
-  decodeM mdn = do
-    sId <- liftIO $ FFI.getMetadataClassId mdn
-    case sId of
-      [mdSubclassIdP|DILocation|] -> do
-        line <- liftIO $ fromIntegral <$> FFI.getLine (castPtr mdn)
-        col  <- liftIO $ fromIntegral <$> FFI.getColumn (castPtr mdn)
-        ptr <-  liftIO $ FFI.getScope (castPtr mdn)
-        scope <- decodeM (ptr)
-
-        return $ A.DILocation line col scope
-      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
-      [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
-      [mdSubclassIdP|DIMacro|]                    -> fail "DIMacro"
-      [mdSubclassIdP|DIMacroFile|]                -> fail "DIMacroFile"
-
-      otherwise -> A.DINode <$> decodeM (castPtr mdn :: Ptr FFI.DINode)
-
 instance DecodeM DecodeAST A.DINode (Ptr FFI.DINode) where
   decodeM diN = do
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast diN)
@@ -154,7 +136,7 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
 
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
   decodeM diF = do
-    when (diF == nullPtr) $ error "crashing for now."
+    when (diF == nullPtr) $ error "DIFile is null."
     fname <- decodeM =<< liftIO (FFI.getFileFilename diF)
     dir   <- decodeM =<< liftIO (FFI.getFileDirectory diF)
     cksum <- decodeM =<< liftIO (FFI.getFileChecksum diF)
@@ -329,7 +311,9 @@ instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast ls)
     case sId of
       [mdSubclassIdP|DISubprogram|] -> do
+        liftIO (putStrLn "Trying to decode file")
         file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
+        liftIO (putStrLn "Decoded file")
         scope <- decodeM =<< (liftIO $ FFI.getScopeScope (castPtr ls))
         name  <- getByteStringFromFFI FFI.getScopeName (castPtr ls)
         return $ A.DISubprogram name undefined scope file undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined
@@ -387,14 +371,12 @@ instance EncodeM EncodeAST A.CallableOperand (Ptr FFI.Value) where
   encodeM (Right o) = encodeM o
   encodeM (Left i) = liftM (FFI.upCast :: Ptr FFI.InlineAsm -> Ptr FFI.Value) (encodeM i)
 
-instance EncodeM EncodeAST A.MetadataNode (Ptr FFI.MDNode) where
-  encodeM (A.MetadataTuple ops) = scopeAnyCont $ do
+instance EncodeM EncodeAST A.MDNode (Ptr FFI.MDNode) where
+  encodeM (A.MDTuple ops) = scopeAnyCont $ do
     Context c <- gets encodeStateContext
     ops <- encodeM ops
     liftIO $ FFI.createMDNodeInContext c ops
   encodeM (A.MetadataNodeReference n) = referMDNode n
-
-instance EncodeM EncodeAST A.MDNode (Ptr FFI.MDNode) where
 
 instance DecodeM DecodeAST [Maybe A.Metadata] (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
@@ -409,24 +391,28 @@ instance DecodeM DecodeAST A.Operand (Ptr FFI.MDValue) where
 instance DecodeM DecodeAST A.Metadata (Ptr FFI.MetadataAsVal) where
   decodeM = decodeM <=< liftIO . FFI.getMetadataOperand
 
-instance DecodeM DecodeAST A.MetadataNode (Ptr FFI.MDNode) where
+instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
     sId <- liftIO $ FFI.getMetadataClassId p
     case sId of
-      [mdSubclassIdP|MDTuple|] -> return A.MetadataNodeReference `ap` getMetadataNodeID p
-      otherwise -> do
-        return A.MetadataNode `ap` decodeM p
---     -- fl <- decodeM =<< liftIO (FFI.mdNodeIsFunctionLocal p)
---     -- if fl
---     --  then
---     --    return A.MetadataNode `ap` decodeM p
---     --  else
-       -- return A.MetadataNodeReference `ap` getMetadataNodeID p
+      [mdSubclassIdP|MDTuple|] -> A.MetadataNodeReference <$> getMetadataNodeID p
+      [mdSubclassIdP|DILocation|] -> do
+        line <- liftIO $ fromIntegral <$> FFI.getLine (castPtr p)
+        col  <- liftIO $ fromIntegral <$> FFI.getColumn (castPtr p)
+        ptr <-  liftIO $ FFI.getScope (castPtr p)
+        scope <- decodeM ptr
+        return $ A.DILocation line col scope
+      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
+      [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
+      [mdSubclassIdP|DIMacro|]                    -> fail "DIMacro"
+      [mdSubclassIdP|DIMacroFile|]                -> fail "DIMacroFile"
 
 getMetadataDefinitions :: DecodeAST [A.Definition]
 getMetadataDefinitions = fix $ \continue -> do
   mdntd <- takeMetadataNodeToDefine
-  flip (maybe (return [])) mdntd $ \(mid, p) -> do
-    return (:)
-      `ap` (return A.MetadataNodeDefinition `ap` return mid `ap` decodeM p)
-      `ap` continue
+  case mdntd of
+    Nothing -> pure []
+    Just (mid, p) ->
+      (:)
+        <$> (A.MetadataNodeDefinition mid <$> decodeM p)
+        <*> continue

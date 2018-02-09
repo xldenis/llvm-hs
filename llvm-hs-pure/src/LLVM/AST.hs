@@ -15,8 +15,7 @@ module LLVM.AST (
   module LLVM.AST.Instruction,
   module LLVM.AST.Name,
   module LLVM.AST.Operand,
-  module LLVM.AST.Type,
-  module LLVM.AST.Metadata
+  module LLVM.AST.Type
   ) where
 
 import LLVM.Prelude
@@ -25,7 +24,6 @@ import LLVM.AST.Name
 import LLVM.AST.Type (Type(..), FloatingPointType(..))
 import LLVM.AST.Global
 import LLVM.AST.Operand
-import LLVM.AST.Metadata
 import LLVM.AST.Instruction
 import LLVM.AST.DataLayout
 import qualified LLVM.AST.Attribute as A
