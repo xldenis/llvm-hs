@@ -433,6 +433,10 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
       [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
       _ -> A.MetadataNodeReference <$> getMetadataNodeID p
 
+instance (DecodeM DecodeAST a (Ptr b), FFI.DescendentOf FFI.MDNode b) => DecodeM DecodeAST (A.MDRef a) (Ptr b) where
+  decodeM p = scopeAnyCont $
+    A.MDRef <$> getMetadataNodeID (FFI.upCast p)
+
 getMetadataDefinitions :: DecodeAST [A.Definition]
 getMetadataDefinitions = fix $ \continue -> do
   mdntd <- takeMetadataNodeToDefine

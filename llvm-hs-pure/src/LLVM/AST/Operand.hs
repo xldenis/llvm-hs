@@ -38,6 +38,11 @@ data Metadata
 newtype MetadataNodeID = MetadataNodeID Word
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
+data MDRef a =
+    MDRef MetadataNodeID
+  | MDInline a
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
 -- | <http://llvm.org/docs/LangRef.html#metadata>
 data MDNode
   = MetadataNodeReference MetadataNodeID
@@ -118,13 +123,13 @@ data DIScope
   | DIFile DIFile
   | DILocalScope DILocalScope
   | DIModule
-    { scopeScope :: DIScope
+    { scopeScope :: MDRef DIScope
     , scopeName :: ShortByteString
     , scopeConfigurationMacros :: ShortByteString
     , scopeIncludePath :: ShortByteString
     , scopeISysRoot :: ShortByteString
     }
-  | DINamespace { scopeName :: ShortByteString, scopeScope :: DIScope, scopeExportSymbols :: Bool }
+  | DINamespace { scopeName :: ShortByteString, scopeScope :: MDRef DIScope, scopeExportSymbols :: Bool }
   | DIType DIType
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
@@ -266,14 +271,14 @@ data DITemplateParameter
 
 data DILexicalBlockBase
   = DILexicalBlock
-    { lexicalBlockBaseFile :: DIFile
-    , lexicalBlockBaseScope :: DILocalScope
+    { lexicalBlockBaseFile :: MDRef DIFile
+    , lexicalBlockBaseScope :: MDRef DILocalScope
     , lexicalBlockLine :: Word32
     , lexicalBlockColumn :: Word32
     }
   | DILexicalBlockFile
-    { lexicalBlockBaseFile :: DIFile
-    , lexicalBlockBaseScope :: DILocalScope
+    { lexicalBlockBaseFile :: MDRef DIFile
+    , lexicalBlockBaseScope :: MDRef DILocalScope
     , lexicalBlockDiscriminator :: Word32
     }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
