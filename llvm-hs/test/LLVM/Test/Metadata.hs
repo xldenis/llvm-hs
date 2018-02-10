@@ -14,6 +14,7 @@ import Control.Monad.IO.Class
 import Data.ByteString as B (readFile)
 import qualified Data.ByteString.Short as BSS
 import Foreign.Ptr
+import Text.Show.Pretty (pPrint)
 
 import LLVM.AST as A
 import LLVM.AST.Type as A.T
@@ -105,8 +106,7 @@ testFile = testCase "parse and decode test/module.ll" $ do
   fStr <- B.readFile "test/module.ll"
   withContext $ \context -> do
     a <- withModuleFromLLVMAssembly' context fStr moduleAST
-    putStrLn (show a)
-    pure ()
+    pPrint a
 
 globalMetadata = testCase "global" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [

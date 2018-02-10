@@ -1,6 +1,7 @@
 {-# LANGUAGE
   MultiParamTypeClasses,
   NamedFieldPuns,
+  OverloadedStrings,
   QuasiQuotes
   #-}
 module LLVM.Internal.Operand where
@@ -243,7 +244,7 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           , A.sizeInBits = size
           , A.alignInBits = align
           , A.offsetInBits = offset
-          , A.typeFlags = (A.toFlags flags)
+          , A.typeFlags = []
           , A.typeElements = els
           , A.typeRuntimeLang = runLang
           , A.vtableHolder = vtable
@@ -281,7 +282,7 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           , A.alignInBits = align
           , A.offsetInBits = offset
           , A.typeAddressSpace = addressSpace
-          , A.typeFlags = (A.toFlags flags)
+          , A.typeFlags = []
           }
       [mdSubclassIdP|DISubroutineType|] -> do
         flags <- fmap fromIntegral $ liftIO $ FFI.getTypeFlags diTy
@@ -293,7 +294,7 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
         arr <- decodeM (n, ops)
 
         return $ A.DISubroutineType
-          { A.typeFlags = (A.toFlags flags)
+          { A.typeFlags = []
           , A.typeCC = cc
           , A.typeTypeArray = arr
           }
@@ -311,13 +312,29 @@ instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast ls)
     case sId of
       [mdSubclassIdP|DISubprogram|] -> do
-        liftIO (putStrLn "Trying to decode file")
-        file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
-        liftIO (putStrLn "Decoded file")
-        scope <- decodeM =<< (liftIO $ FFI.getScopeScope (castPtr ls))
         name  <- getByteStringFromFFI FFI.getScopeName (castPtr ls)
-        return $ A.DISubprogram name undefined scope file undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined undefined
-        -- fail "DISubprogram"
+        -- file  <- decodeM =<< liftIO (FFI.getScopeFile (castPtr ls))
+        -- scope <- decodeM =<< liftIO (FFI.getScopeScope (castPtr ls))
+        pure $ A.DISubprogram
+          { A.subprogramName = name
+          , A.subprogramLinkageName = ""
+          , A.subprogramScope = Nothing
+          , A.subprogramFile = Nothing
+          , A.subprogramLine = 0
+          , A.subprogramType = Nothing
+          , A.subprogramDefinition = True
+          , A.subprogramScopeLine = 0
+          , A.subprogramContainingType = Nothing
+          , A.subprogramVirtuality = A.Virtuality 0
+          , A.subprogramVirtualityIndex = 0
+          , A.subprogramFlags = []
+          , A.subprogramOptimized = False
+          , A.subprogramUnit = Nothing
+          , A.subprogramTemplateParams = Nothing
+          , A.subprogramDeclaration = Nothing
+          , A.subprogramVariables = Nothing
+          , A.subprogramThrownTypes = Nothing
+          }
       [mdSubclassIdP|DILexicalBlock|] -> do
         file  <- decodeM =<< (liftIO $ FFI.getScopeFile (castPtr ls))
         scope <- decodeM =<< (liftIO $ FFI.getLexicalBlockScope (castPtr ls))
@@ -395,17 +412,18 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
     sId <- liftIO $ FFI.getMetadataClassId p
     case sId of
-      [mdSubclassIdP|MDTuple|] -> A.MetadataNodeReference <$> getMetadataNodeID p
+      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
+      [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
       [mdSubclassIdP|DILocation|] -> do
         line <- liftIO $ fromIntegral <$> FFI.getLine (castPtr p)
         col  <- liftIO $ fromIntegral <$> FFI.getColumn (castPtr p)
         ptr <-  liftIO $ FFI.getScope (castPtr p)
         scope <- decodeM ptr
         return $ A.DILocation line col scope
-      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
-      [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
-      [mdSubclassIdP|DIMacro|]                    -> fail "DIMacro"
-      [mdSubclassIdP|DIMacroFile|]                -> fail "DIMacroFile"
+      [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
+      [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
+      [mdSubclassIdP|MDTuple|] -> A.MetadataNodeReference <$> getMetadataNodeID p
+      _ -> A.DINode <$> decodeM (castPtr p :: Ptr FFI.DINode)
 
 getMetadataDefinitions :: DecodeAST [A.Definition]
 getMetadataDefinitions = fix $ \continue -> do

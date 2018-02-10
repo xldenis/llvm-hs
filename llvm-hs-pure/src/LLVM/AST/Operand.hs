@@ -145,26 +145,26 @@ data DILocalScope
   | DISubprogram
     { subprogramName :: ShortByteString
     , subprogramLinkageName :: ShortByteString
-    , subprogramScope ::  DIScope
-    , subprogramFile :: DIFile
+    , subprogramScope ::  Maybe DIScope
+    , subprogramFile :: Maybe DIFile
     , subprogramLine :: Word32
-    , subprogramType :: DIType
+    , subprogramType :: Maybe DIType
     , subprogramDefinition :: Bool
     , subprogramScopeLine :: Word32
-    , subprogramContainingType :: DIType
+    , subprogramContainingType :: Maybe DIType
     , subprogramVirtuality :: Virtuality
     , subprogramVirtualityIndex :: Word32
-    , subprogramFlags :: DIFlag {- ? -}
+    , subprogramFlags :: [DIFlag]
     , subprogramOptimized :: Bool
-    , subprogramUnit :: MDNode
-    , subprogramTemplateParams :: MDNode
-    , subprogramDeclaration :: MDNode
-    , subprogramVariables :: MDNode
-    , subprogramThrownTypes :: MDNode
+    , subprogramUnit :: Maybe MDNode
+    , subprogramTemplateParams :: Maybe MDNode
+    , subprogramDeclaration :: Maybe MDNode
+    , subprogramVariables :: Maybe MDNode
+    , subprogramThrownTypes :: Maybe MDNode
     } {- Should be Metada -}
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
-data Virtuality = MkFake
+newtype Virtuality = Virtuality Word32
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data DIType
@@ -303,6 +303,5 @@ data DIVariable
     }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
-toFlags _ = [MkFakeFlag]
-data DIFlag = MkFakeFlag
+data DIFlag = Private -- TODO add other constructors
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
