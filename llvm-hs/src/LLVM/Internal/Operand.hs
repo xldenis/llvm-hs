@@ -408,11 +408,12 @@ instance DecodeM DecodeAST A.Operand (Ptr FFI.MDValue) where
 instance DecodeM DecodeAST A.Metadata (Ptr FFI.MetadataAsVal) where
   decodeM = decodeM <=< liftIO . FFI.getMetadataOperand
 
-instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
-  decodeM p = scopeAnyCont $ do
-    sId <- liftIO $ FFI.getMetadataClassId p
-    case sId of
+decodeMDNode :: Ptr FFI.MDNode -> DecodeAST A.MDNode
+decodeMDNode p = scopeAnyCont $ do
+  sId <- liftIO $ FFI.getMetadataClassId p
+  case sId of
       [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
+      [mdSubclassIdP|MDTuple|] -> A.MDTuple <$> decodeM p
       [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
       [mdSubclassIdP|DILocation|] -> do
         line <- liftIO $ fromIntegral <$> FFI.getLine (castPtr p)
@@ -425,6 +426,13 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
       [mdSubclassIdP|MDTuple|] -> A.MetadataNodeReference <$> getMetadataNodeID p
       _ -> A.DINode <$> decodeM (castPtr p :: Ptr FFI.DINode)
 
+instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
+  decodeM p = scopeAnyCont $ do
+    sId <- liftIO $ FFI.getMetadataClassId p
+    case sId of
+      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
+      _ -> A.MetadataNodeReference <$> getMetadataNodeID p
+
 getMetadataDefinitions :: DecodeAST [A.Definition]
 getMetadataDefinitions = fix $ \continue -> do
   mdntd <- takeMetadataNodeToDefine
@@ -432,5 +440,5 @@ getMetadataDefinitions = fix $ \continue -> do
     Nothing -> pure []
     Just (mid, p) ->
       (:)
-        <$> (A.MetadataNodeDefinition mid <$> decodeM p)
+        <$> (A.MetadataNodeDefinition mid <$> decodeMDNode p)
         <*> continue

@@ -122,7 +122,7 @@ globalMetadata = testCase "global" $ do
               )
              ]
             },
-          MetadataNodeDefinition (MetadataNodeID 0) [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ]
+          MetadataNodeDefinition (MetadataNodeID 0) (MDTuple [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ])
          ]
     let s = "; ModuleID = '<string>'\n\
             \source_filename = \"<string>\"\n\
@@ -137,7 +137,7 @@ globalMetadata = testCase "global" $ do
 namedMetadata = testCase "named" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [
           NamedMetadataDefinition "my-module-metadata" [ MetadataNodeID 0 ],
-          MetadataNodeDefinition (MetadataNodeID 0) [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ]
+          MetadataNodeDefinition (MetadataNodeID 0) (MDTuple [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ])
          ]
     let s = "; ModuleID = '<string>'\n\
             \source_filename = \"<string>\"\n\
@@ -150,7 +150,7 @@ namedMetadata = testCase "named" $ do
 nullMetadata = testCase "null" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [
           NamedMetadataDefinition "my-module-metadata" [ MetadataNodeID 0 ],
-          MetadataNodeDefinition (MetadataNodeID 0) [ Nothing ]
+          MetadataNodeDefinition (MetadataNodeID 0) (MDTuple [ Nothing ])
          ]
     let s = "; ModuleID = '<string>'\n\
             \source_filename = \"<string>\"\n\
@@ -164,12 +164,12 @@ cyclicMetadata = testGroup "cyclic" [
     testCase "metadata-only" $ do
       let ast = Module "<string>" "<string>" Nothing Nothing [
             NamedMetadataDefinition "my-module-metadata" [MetadataNodeID 0],
-            MetadataNodeDefinition (MetadataNodeID 0) [
-              Just $ MDNode (MetadataNodeReference (MetadataNodeID 1))
-             ],
-            MetadataNodeDefinition (MetadataNodeID 1) [
-              Just $ MDNode (MetadataNodeReference (MetadataNodeID 0))
-             ]
+            MetadataNodeDefinition
+              (MetadataNodeID 0)
+              (MDTuple [Just $ MDNode (MetadataNodeReference (MetadataNodeID 1))]),
+            MetadataNodeDefinition
+              (MetadataNodeID 1)
+              (MDTuple [Just $ MDNode (MetadataNodeReference (MetadataNodeID 0))])
            ]
       let s = "; ModuleID = '<string>'\n\
               \source_filename = \"<string>\"\n\
@@ -192,9 +192,9 @@ cyclicMetadata = testGroup "cyclic" [
                  )
                ]
              },
-            MetadataNodeDefinition (MetadataNodeID 0) [
-              Just $ MDValue $ ConstantOperand (C.GlobalReference (ptr (FunctionType A.T.void [] False)) (Name "foo"))
-             ]
+            MetadataNodeDefinition
+              (MetadataNodeID 0)
+              (MDTuple [Just $ MDValue $ ConstantOperand (C.GlobalReference (ptr (FunctionType A.T.void [] False)) (Name "foo"))])
            ]
       let s = "; ModuleID = '<string>'\n\
               \source_filename = \"<string>\"\n\

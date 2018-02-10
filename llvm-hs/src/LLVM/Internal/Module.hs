@@ -273,11 +273,11 @@ withModuleFromAST context@(Context c) (A.Module moduleId sourceFileName dataLayo
      defineCOMDAT n cd
      return . return . return . return . return $ ()
 
-   A.MetadataNodeDefinition i os -> return . return $ do
+   A.MetadataNodeDefinition i md -> return . return $ do
      t <- liftIO $ FFI.createTemporaryMDNodeInContext context
      defineMDNode i t
      return $ do
-       n <- encodeM (A.MDTuple os)
+       n <- encodeM md
        liftIO $ FFI.metadataReplaceAllUsesWith (FFI.upCast t) (FFI.upCast n)
        defineMDNode i n
        return $ return ()

@@ -33,7 +33,7 @@ import qualified LLVM.AST.COMDAT as COMDAT
 data Definition
   = GlobalDefinition Global
   | TypeDefinition Name (Maybe Type)
-  | MetadataNodeDefinition MetadataNodeID [Maybe Metadata]
+  | MetadataNodeDefinition MetadataNodeID MDNode
   | NamedMetadataDefinition ShortByteString [MetadataNodeID]
   | ModuleInlineAssembly ByteString
   | FunctionAttributes A.GroupID [A.FunctionAttribute]
