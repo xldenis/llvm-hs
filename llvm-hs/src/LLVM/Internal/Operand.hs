@@ -418,7 +418,7 @@ decodeMDNode :: Ptr FFI.MDNode -> DecodeAST A.MDNode
 decodeMDNode p = scopeAnyCont $ do
   sId <- liftIO $ FFI.getMetadataClassId p
   case sId of
-      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
+      [mdSubclassIdP|DIExpression|] -> decodeDIExpression p
       [mdSubclassIdP|MDTuple|] -> A.MDTuple <$> decodeM p
       [mdSubclassIdP|DIGlobalVariableExpression|] -> fail "DIGlobalVariableExpression"
       [mdSubclassIdP|DILocation|] -> do
@@ -431,11 +431,19 @@ decodeMDNode p = scopeAnyCont $ do
       [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
       _ -> A.DINode <$> decodeM (castPtr p :: Ptr FFI.DINode)
 
+decodeDIExpression :: Ptr FFI.MDNode -> DecodeAST A.MDNode
+decodeDIExpression p = do
+  let diExpr = castPtr p
+  numElems <- liftIO (FFI.getDIExpressionNumElements diExpr)
+  if numElems == 0
+    then pure (A.DIExpression [])
+    else A.DIExpression <$> traverse (liftIO . FFI.getDIExpressionElement diExpr) [0 .. numElems-1]
+
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
     sId <- liftIO $ FFI.getMetadataClassId p
     case sId of
-      [mdSubclassIdP|DIExpression|]               -> fail "DIExpression"
+      [mdSubclassIdP|DIExpression|] -> decodeDIExpression p
       _ -> A.MetadataNodeReference <$> getMetadataNodeID p
 
 instance (DecodeM DecodeAST a (Ptr b), FFI.DescendentOf FFI.MDNode b) => DecodeM DecodeAST (A.MDRef a) (Ptr b) where

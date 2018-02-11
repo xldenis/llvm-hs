@@ -263,3 +263,11 @@ foreign import ccall unsafe "LLVM_Hs_DISubprogram_IsOptimized" isOptimized ::
 
 foreign import ccall unsafe "LLVM_Hs_DISubprogram_IsDefinition" isDefinition ::
   Ptr DISubprogram -> IO LLVMBool
+
+-- DIExpression
+
+foreign import ccall unsafe "LLVM_Hs_DIExpression_GetNumElements" getDIExpressionNumElements ::
+  Ptr DIExpression -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DIExpression_GetElement" getDIExpressionElement ::
+  Ptr DIExpression -> CUInt -> IO Word64

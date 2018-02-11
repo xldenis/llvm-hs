@@ -382,5 +382,16 @@ LLVMBool LLVM_Hs_DISubprogram_IsDefinition(DISubprogram* p) {
     return p->isDefinition();
 }
 
+// DIExpression
+
+unsigned LLVM_Hs_DIExpression_GetNumElements(DIExpression* e) {
+    return e->getNumElements();
+}
+
+unsigned LLVM_Hs_DIExpression_GetElement(DIExpression* e, unsigned i) {
+    fprintf(stderr, "%p, %d, %d\n", (void*)e, i, e->getNumElements());
+    return e->getElement(i);
+}
+
 }
 
