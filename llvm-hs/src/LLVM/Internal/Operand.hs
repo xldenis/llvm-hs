@@ -131,7 +131,24 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
       [mdSubclassIdP|DIDerivedType|]    -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
       [mdSubclassIdP|DISubroutineType|] -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
 
-      [mdSubclassIdP|DICompileUnit|] -> fail "DICompileUnit"
+      [mdSubclassIdP|DICompileUnit|] -> do
+        file <- decodeM =<< liftIO (FFI.getScopeFile p)
+        pure A.DICompileUnit
+          { A.scopeLanguage = 0
+          , A.scopeFile = file
+          , A.scopeProducer = ""
+          , A.scopeOptimized = False
+          , A.scopeFlags = ""
+          , A.scopeRuntimeVersion = 0
+          , A.scopeDebugFileName = ""
+          , A.scopeEmissionKind = 0
+          , A.scopeEnumTypes = Nothing
+          , A.scopeRetainedTypes = Nothing
+          , A.scopeGlobalVariables = Nothing
+          , A.scopeImportedEntities = Nothing
+          , A.scopeMacros = Nothing
+          , A.scopeDWOId = 0
+          }
       [mdSubclassIdP|DIModule|]      -> fail "DIModule"
       _ -> fail "Not a valid DIScope subclass ID"
 

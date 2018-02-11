@@ -190,10 +190,12 @@ foreign import ccall unsafe "LLVM_Hs_DINamespaceGetFile" getNamespaceFile ::
 foreign import ccall unsafe "LLVM_Hs_DINamespaceGetExportSymbols" getNamespaceExportedSymbols ::
   Ptr DINode -> IO Bool
 
-foreign import ccall unsafe "LLVM_Hs_DIScopeGetScope" getScopeScope ::
+-- DIScope
+
+foreign import ccall unsafe "LLVM_Hs_DIScope_GetScope" getScopeScope ::
   Ptr DIScope -> IO (Ptr DIScope)
 
-foreign import ccall unsafe "LLVM_Hs_DIScopeGetFile" getScopeFile ::
+foreign import ccall unsafe "LLVM_Hs_DIScope_GetFile" getScopeFile ::
   Ptr DIScope -> IO (Ptr DIFile)
 
 foreign import ccall unsafe "LLVM_Hs_DILexicalBlockBaseGetScope" getLexicalBlockScope ::

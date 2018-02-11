@@ -215,12 +215,14 @@ llvm::DIFile::ChecksumKind LLVM_Hs_DIFileGetChecksumKind(DIFile *di) {
     return di->getChecksumKind();
 }
 
-DIScope* LLVM_Hs_DIScopeGetScope(DIScope *ds) {
+// DIScope
+
+DIScope* LLVM_Hs_DIScope_GetScope(DIScope *ds) {
     return cast_or_null<DIScope>(ds->getScope());
 }
 
-DIFile* LLVM_Hs_DIScopeGetFile(DIScope *ds) {
-    return cast_or_null<DIFile>(ds->getFile());
+DIFile* LLVM_Hs_DIScope_GetFile(DIScope *ds) {
+    return ds->getFile();
 }
 
 bool LLVM_Hs_DINamespaceGetExportSymbols(DINamespace *ds) {

@@ -106,18 +106,19 @@ data DINode
 data DIScope
 -- | https://llvm.org/docs/LangRef.html#dicompileunit
   = DICompileUnit
-    { scopeFile :: DIFile
+    { scopeLanguage :: Word32
+    , scopeFile :: MDRef DIFile
     , scopeProducer :: ShortByteString
     , scopeOptimized :: Bool
     , scopeFlags :: ShortByteString
     , scopeRuntimeVersion :: Word32
     , scopeDebugFileName :: ShortByteString
     , scopeEmissionKind :: Word32
-    , scopeEnumTypes :: MDNode
-    , scopeRetainedTypes :: MDNode
-    , scopeGlobalVariables :: MDNode
-    , scopeImportedEntitites :: MDNode
-    , scopeMacros :: MDNode
+    , scopeEnumTypes :: Maybe (MDRef MDNode)
+    , scopeRetainedTypes :: Maybe (MDRef MDNode)
+    , scopeGlobalVariables :: Maybe (MDRef MDNode)
+    , scopeImportedEntities :: Maybe (MDRef MDNode)
+    , scopeMacros :: Maybe (MDRef MDNode)
     , scopeDWOId :: Word64
     }
   | DIFile DIFile
