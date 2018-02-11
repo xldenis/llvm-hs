@@ -150,8 +150,8 @@ data DILocalScope
   | DISubprogram
     { subprogramName :: ShortByteString
     , subprogramLinkageName :: ShortByteString
-    , subprogramScope ::  Maybe DIScope
-    , subprogramFile :: Maybe DIFile
+    , subprogramScope ::  Maybe (MDRef DIScope)
+    , subprogramFile :: Maybe (MDRef DIFile)
     , subprogramLine :: Word32
     , subprogramType :: Maybe DIType
     , subprogramDefinition :: Bool
