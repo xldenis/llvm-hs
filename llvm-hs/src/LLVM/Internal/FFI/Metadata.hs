@@ -243,3 +243,23 @@ foreign import ccall unsafe "LLVM_Hs_DISubrange_GetCount" getDISubrangeCount ::
 
 foreign import ccall unsafe "LLVM_Hs_DISubrange_GetLowerBound" getDISubrangeLowerBound ::
   Ptr DINode -> IO Int64
+
+-- DISubprogram
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetLine" getDISubprogramLine ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetVirtuality" getDISubprogramVirtuality ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetVirtualIndex" getDISubprogramVirtualIndex ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetScopeLine" getDISubprogramScopeLine ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_IsOptimized" isOptimized ::
+  Ptr DISubprogram -> IO LLVMBool
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_IsDefinition" isDefinition ::
+  Ptr DISubprogram -> IO LLVMBool

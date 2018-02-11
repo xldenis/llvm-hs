@@ -315,20 +315,26 @@ instance DecodeM DecodeAST A.DILocalScope (Ptr FFI.DILocalScope) where
         name  <- getByteStringFromFFI FFI.getScopeName (castPtr ls)
         file  <- decodeM =<< liftIO (FFI.getScopeFile (castPtr ls))
         scope <- decodeM =<< liftIO (FFI.getScopeScope (FFI.upCast ls))
+        line <- decodeM =<< liftIO (FFI.getDISubprogramLine (castPtr ls))
+        -- virtuality <- decodeM =<< liftIO (FFI.getDISubprogramVirtuality (castPtr ls))
+        virtualIndex <- decodeM =<< liftIO (FFI.getDISubprogramVirtualIndex (castPtr ls))
+        scopeLine <- decodeM =<< liftIO (FFI.getDISubprogramScopeLine (castPtr ls))
+        optimized <- decodeM =<< liftIO (FFI.isOptimized (castPtr ls))
+        definition <- decodeM =<< liftIO (FFI.isDefinition (castPtr ls))
         pure $ A.DISubprogram
           { A.subprogramName = name
           , A.subprogramLinkageName = ""
           , A.subprogramScope = scope
           , A.subprogramFile = file
-          , A.subprogramLine = 0
+          , A.subprogramLine = line
           , A.subprogramType = Nothing
-          , A.subprogramDefinition = True
-          , A.subprogramScopeLine = 0
+          , A.subprogramDefinition = definition
+          , A.subprogramScopeLine = scopeLine
           , A.subprogramContainingType = Nothing
           , A.subprogramVirtuality = A.Virtuality 0
-          , A.subprogramVirtualityIndex = 0
+          , A.subprogramVirtualityIndex = virtualIndex
           , A.subprogramFlags = []
-          , A.subprogramOptimized = False
+          , A.subprogramOptimized = optimized
           , A.subprogramUnit = Nothing
           , A.subprogramTemplateParams = Nothing
           , A.subprogramDeclaration = Nothing

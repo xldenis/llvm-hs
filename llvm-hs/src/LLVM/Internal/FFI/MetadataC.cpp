@@ -356,5 +356,31 @@ unsigned LLVM_Hs_DISubroutineTypeArrayLength(DISubroutineType *a) {
     return a->getTypeArray().size();
 }
 
+// DISubprogram
+
+unsigned LLVM_Hs_DISubprogram_GetLine(DISubprogram* p) {
+    return p->getLine();
+}
+
+unsigned LLVM_Hs_DISubprogram_GetVirtuality(DISubprogram* p) {
+    return p->getVirtuality();
+}
+
+unsigned LLVM_Hs_DISubprogram_GetVirtualIndex(DISubprogram* p) {
+    return p->getVirtualIndex();
+}
+
+unsigned LLVM_Hs_DISubprogram_GetScopeLine(DISubprogram* p) {
+    return p->getScopeLine();
+}
+
+LLVMBool LLVM_Hs_DISubprogram_IsOptimized(DISubprogram* p) {
+    return p->isOptimized();
+}
+
+LLVMBool LLVM_Hs_DISubprogram_IsDefinition(DISubprogram* p) {
+    return p->isDefinition();
+}
+
 }
 
