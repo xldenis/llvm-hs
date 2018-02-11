@@ -102,11 +102,19 @@ roundtripDINode = testProperty "roundtrip DINode" $ \diNode -> ioProperty $
     pure (decodedDINode === diNode)
 
 testFile :: TestTree
-testFile = testCase "parse and decode test/module.ll" $ do
-  fStr <- B.readFile "test/module.ll"
-  withContext $ \context -> do
-    a <- withModuleFromLLVMAssembly' context fStr moduleAST
-    pPrint a
+testFile = do
+  testGroup "file parsing and decoding"
+    [ testCase "test/module.ll" $ do
+        fStr <- B.readFile "test/module.ll"
+        withContext $ \context -> do
+          a <- withModuleFromLLVMAssembly' context fStr moduleAST
+          pPrint a
+    ,  testCase "test/module_2.ll" $ do
+         fStr <- B.readFile "test/module_2.ll"
+         withContext $ \context -> do
+           a <- withModuleFromLLVMAssembly' context fStr moduleAST
+           pPrint a
+    ]
 
 globalMetadata = testCase "global" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [
