@@ -49,7 +49,7 @@ data MDNode
   | MDTuple [Maybe Metadata] -- ^ Nothing represents 'null'
   | DIExpression { nodeElements :: [Word64] }
   | DIGlobalVariableExpression { nodeVariable :: MDNode, nodeExpression :: MDNode }
-  | DILocation { locationLine :: Word32, locationColumn :: Word32, locationScope :: DILocalScope }
+  | DILocation { locationLine :: Word32, locationColumn :: Word32, locationScope :: MDRef DILocalScope }
   | DIMacroNode DIMacroNode -- nyi
   | DINode DINode
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
