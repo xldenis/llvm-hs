@@ -271,3 +271,20 @@ foreign import ccall unsafe "LLVM_Hs_DIExpression_GetNumElements" getDIExpressio
 
 foreign import ccall unsafe "LLVM_Hs_DIExpression_GetElement" getDIExpressionElement ::
   Ptr DIExpression -> CUInt -> IO Word64
+
+-- DIVariable
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetScope" getDIVariableScope ::
+  Ptr DIVariable -> IO (Ptr DIScope)
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetFile" getDIVariableFile ::
+  Ptr DIVariable -> IO (Ptr DIFile)
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetName" getDIVariableName ::
+  Ptr DIVariable -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetLine" getDIVariableLine ::
+  Ptr DIVariable -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetType" getDIVariableType ::
+  Ptr DIVariable -> IO (Ptr DIType)

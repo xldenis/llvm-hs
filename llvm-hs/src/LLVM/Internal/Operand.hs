@@ -300,6 +300,25 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           }
 
 instance DecodeM DecodeAST A.DIVariable (Ptr FFI.DIVariable) where
+  decodeM p = do
+    sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast p)
+    case sId of
+      [mdSubclassIdP|DIGlobalVariable|] -> fail "DIGlobalVariable"
+      [mdSubclassIdP|DILocalVariable|] -> do
+        file <- decodeM =<< liftIO (FFI.getDIVariableFile p)
+        scope <- decodeM =<< liftIO (FFI.getDIVariableScope p)
+        name <- decodeM =<< liftIO (FFI.getDIVariableName p)
+        line <- decodeM =<< liftIO (FFI.getDIVariableLine p)
+        type' <- decodeM =<< liftIO (FFI.getDIVariableType p)
+        pure A.DILocalVariable
+          { A.variableFile = file
+          , A.variableScope = scope
+          , A.variableName = name
+          , A.variableLine = line
+          , A.variableArg = 0
+          , A.variableFlags = []
+          , A.variableType = type'
+          }
 
 instance DecodeM DecodeAST A.DITemplateParameter (Ptr FFI.DITemplateParameter) where
 

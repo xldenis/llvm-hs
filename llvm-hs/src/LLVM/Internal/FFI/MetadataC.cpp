@@ -393,5 +393,27 @@ unsigned LLVM_Hs_DIExpression_GetElement(DIExpression* e, unsigned i) {
     return e->getElement(i);
 }
 
+// DIVariable
+
+DIScope* LLVM_Hs_DIVariable_GetScope(DIVariable* v) {
+    return v->getScope();
+}
+
+DIFile* LLVM_Hs_DIVariable_GetFile(DIVariable* v) {
+    return v->getFile();
+}
+
+const char* LLVM_Hs_DIVariable_GetName(DIVariable* v) {
+    return v->getName().data();
+}
+
+unsigned LLVM_Hs_DIVariable_GetLine(DIVariable* v) {
+    return v->getLine();
+}
+
+DIType* LLVM_Hs_DIVariable_GetType(DIVariable* v) {
+    return v->getType().resolve();
+}
+
 }
 
