@@ -423,7 +423,6 @@ decodeMDNode p = scopeAnyCont $ do
         return $ A.DILocation line col scope
       [mdSubclassIdP|DIMacro|] -> fail "DIMacro"
       [mdSubclassIdP|DIMacroFile|] -> fail "DIMacroFile"
-      [mdSubclassIdP|MDTuple|] -> A.MetadataNodeReference <$> getMetadataNodeID p
       _ -> A.DINode <$> decodeM (castPtr p :: Ptr FFI.DINode)
 
 instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
