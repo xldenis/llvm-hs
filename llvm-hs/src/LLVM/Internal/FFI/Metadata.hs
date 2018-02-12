@@ -115,11 +115,17 @@ foreign import ccall unsafe "LLVM_Hs_MetadataReplaceAllUsesWith" metadataReplace
 namedMetadataAddOperands :: Ptr NamedMetadata -> (CUInt, Ptr (Ptr MDNode)) -> IO ()
 namedMetadataAddOperands nm (n, vs) = namedMetadataAddOperands' nm vs n
 
-foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetValue" getEnumeratorValue ::
-  Ptr DINode -> IO CLong
+-- DIEnumerator
 
-foreign import ccall unsafe "LLVM_Hs_DIEnumeratorGetName" getEnumeratorName ::
-  Ptr MDString -> IO (Ptr MDString)
+foreign import ccall unsafe "LLVM_Hs_Get_DIEnumerator" getDIEnumerator ::
+  Ptr Context -> Int64 -> CString -> IO (Ptr DINode)
+
+foreign import ccall unsafe "LLVM_Hs_DIEnumerator_GetValue" getDIEnumeratorValue ::
+  Ptr DINode -> IO Int64
+
+foreign import ccall unsafe "LLVM_Hs_DIEnumerator_GetName" getDIEnumeratorName ::
+  Ptr DINode -> IO CString
+
 
 foreign import ccall unsafe "LLVM_Hs_DIFileGetFilename" getFileFilename ::
   Ptr DIFile -> IO (Ptr MDString)
@@ -151,13 +157,13 @@ foreign import ccall unsafe "LLVM_Hs_DITypeGetOffsetInBits" getTypeOffsetInBits 
 foreign import ccall unsafe "LLVM_Hs_DIBasicTypeGetEncoding" getBasicTypeEncoding ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DITypeGetTag" getTypeTag ::
-  Ptr DIType -> IO CUInt
+foreign import ccall unsafe "LLVM_Hs_DINodeGetTag" getTag ::
+  Ptr DINode -> IO CUInt
 
 foreign import ccall unsafe "LLVM_Hs_DITypeGetLine" getTypeLine ::
   Ptr DIType -> IO CUInt
 
-foreign import ccall unsafe "LLVM_Hs_DITypeFlags" getTypeFlags ::
+foreign import ccall unsafe "LLVM_Hs_DITypeGetFlags" getTypeFlags ::
   Ptr DIType -> IO CUInt
 
 foreign import ccall unsafe "LLVM_Hs_DICompositeTypeGetElements" getElements ::
@@ -184,10 +190,12 @@ foreign import ccall unsafe "LLVM_Hs_DINamespaceGetFile" getNamespaceFile ::
 foreign import ccall unsafe "LLVM_Hs_DINamespaceGetExportSymbols" getNamespaceExportedSymbols ::
   Ptr DINode -> IO Bool
 
-foreign import ccall unsafe "LLVM_Hs_DIScopeGetScope" getScopeScope ::
+-- DIScope
+
+foreign import ccall unsafe "LLVM_Hs_DIScope_GetScope" getScopeScope ::
   Ptr DIScope -> IO (Ptr DIScope)
 
-foreign import ccall unsafe "LLVM_Hs_DIScopeGetFile" getScopeFile ::
+foreign import ccall unsafe "LLVM_Hs_DIScope_GetFile" getScopeFile ::
   Ptr DIScope -> IO (Ptr DIFile)
 
 foreign import ccall unsafe "LLVM_Hs_DILexicalBlockBaseGetScope" getLexicalBlockScope ::
@@ -221,3 +229,64 @@ foreign import ccall unsafe "LLVM_Hs_DISubroutineTypeArrayLength" getSubroutineT
 
 foreign import ccall unsafe "LLVM_Hs_GetDISubroutineTypeArray" getSubroutineTypeArray ::
   Ptr DIType -> Ptr (Ptr DIType) -> IO ()
+
+foreign import ccall unsafe "LLVM_Hs_Get_DIBasicType" getDIBasicType ::
+  Ptr Context -> CUInt -> CString -> Word64 -> Word32 -> CUInt -> IO (Ptr DIType)
+
+foreign import ccall unsafe "LLVM_Hs_Get_DIFile" getDIFile ::
+  Ptr Context -> CString -> CString -> CUInt -> CString -> IO (Ptr DIFile)
+
+-- DISubrange
+foreign import ccall unsafe "LLVM_Hs_Get_DISubrange" getDISubrange ::
+  Ptr Context -> Int64 -> Int64 -> IO (Ptr DINode)
+
+foreign import ccall unsafe "LLVM_Hs_DISubrange_GetCount" getDISubrangeCount ::
+  Ptr DINode -> IO Int64
+
+foreign import ccall unsafe "LLVM_Hs_DISubrange_GetLowerBound" getDISubrangeLowerBound ::
+  Ptr DINode -> IO Int64
+
+-- DISubprogram
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetLine" getDISubprogramLine ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetVirtuality" getDISubprogramVirtuality ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetVirtualIndex" getDISubprogramVirtualIndex ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_GetScopeLine" getDISubprogramScopeLine ::
+  Ptr DISubprogram -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_IsOptimized" isOptimized ::
+  Ptr DISubprogram -> IO LLVMBool
+
+foreign import ccall unsafe "LLVM_Hs_DISubprogram_IsDefinition" isDefinition ::
+  Ptr DISubprogram -> IO LLVMBool
+
+-- DIExpression
+
+foreign import ccall unsafe "LLVM_Hs_DIExpression_GetNumElements" getDIExpressionNumElements ::
+  Ptr DIExpression -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DIExpression_GetElement" getDIExpressionElement ::
+  Ptr DIExpression -> CUInt -> IO Word64
+
+-- DIVariable
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetScope" getDIVariableScope ::
+  Ptr DIVariable -> IO (Ptr DIScope)
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetFile" getDIVariableFile ::
+  Ptr DIVariable -> IO (Ptr DIFile)
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetName" getDIVariableName ::
+  Ptr DIVariable -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetLine" getDIVariableLine ::
+  Ptr DIVariable -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetType" getDIVariableType ::
+  Ptr DIVariable -> IO (Ptr DIType)

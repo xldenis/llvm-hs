@@ -149,6 +149,11 @@ data DILexicalBlockBase
 
 instance ChildOf DILocalScope DILexicalBlockBase
 
+-- | <https://llvm.org/doxygen/classllvm_1_1DISubprogram.html>
+data DISubprogram
+
+instance ChildOf DILocalScope DISubprogram
+
 -- | <http://llvm.org/doxygen/classllvm_1_1NamedMDNode.html>
 data NamedMetadata
 

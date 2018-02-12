@@ -23,23 +23,23 @@ import qualified LLVM.Test.Target as Target
 import qualified LLVM.Test.Regression as Regression
 
 tests = testGroup "llvm-hs" [
-    -- CallingConvention.tests,
-    -- Constants.tests,
-    -- DataLayout.tests,
-    -- Attribute.tests,
-    -- FunctionAttribute.tests,
-    -- ExecutionEngine.tests,
-    -- Global.tests,
-    -- InlineAssembly.tests,
-    -- Instructions.tests,
-    Metadata.tests
-    -- Module.tests,
-    -- OrcJIT.tests,
-    -- Optimization.tests,
-    -- Target.tests,
-    -- Analysis.tests,
-    -- Linking.tests,
-    -- Instrumentation.tests,
-    -- ObjectCode.tests,
-    -- Regression.tests
+    CallingConvention.tests,
+    Constants.tests,
+    DataLayout.tests,
+    Attribute.tests,
+    FunctionAttribute.tests,
+    ExecutionEngine.tests,
+    Global.tests,
+    InlineAssembly.tests,
+    Instructions.tests,
+    Metadata.tests,
+    Module.tests,
+    OrcJIT.tests,
+    Optimization.tests,
+    Target.tests,
+    Analysis.tests,
+    Linking.tests,
+    Instrumentation.tests,
+    ObjectCode.tests,
+    Regression.tests
   ]

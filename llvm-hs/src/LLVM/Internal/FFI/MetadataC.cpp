@@ -166,6 +166,14 @@ unsigned LLVM_Hs_GetMetadataClassId(LLVMMetadataRef md) {
     return (unwrap(md))->getMetadataID();
 }
 
+unsigned LLVM_Hs_DINodeGetTag(DINode *md) {
+    return md->getTag();
+}
+
+unsigned LLVM_Hs_DITypeGetFlags(DIType *md) {
+    return md->getFlags();
+}
+
 unsigned LLVM_Hs_DILocationGetLine(DILocation *md) {
     return md->getLine();
 }
@@ -178,12 +186,17 @@ DILocalScope* LLVM_Hs_DILocationGetScope(DILocation *md) {
     return md->getScope();
 }
 
-int64_t LLVM_Hs_DIEnumeratorGetValue(LLVMMetadataRef md) {
+DINode* LLVM_Hs_Get_DIEnumerator(LLVMContextRef cxt, int64_t value, const char* name) {
+    LLVMContext& c = *unwrap(cxt);
+    return DIEnumerator::get(c, value, MDString::get(c, name));
+}
+
+int64_t LLVM_Hs_DIEnumerator_GetValue(LLVMMetadataRef md) {
     return unwrap<DIEnumerator>(md)->getValue();
 }
 
-MDString* LLVM_Hs_DIEnumeratorGetName(LLVMMetadataRef md, unsigned *len) {
-    return unwrap<DIEnumerator>(md)->getRawName();
+const char* LLVM_Hs_DIEnumerator_GetName(LLVMMetadataRef md) {
+    return unwrap<DIEnumerator>(md)->getName().data();
 }
 
 MDString* LLVM_Hs_DIFileGetFilename(DIFile *di) {
@@ -202,12 +215,14 @@ llvm::DIFile::ChecksumKind LLVM_Hs_DIFileGetChecksumKind(DIFile *di) {
     return di->getChecksumKind();
 }
 
-DIScope* LLVM_Hs_DIScopeGetScope(DIScope *ds) {
+// DIScope
+
+DIScope* LLVM_Hs_DIScope_GetScope(DIScope *ds) {
     return cast_or_null<DIScope>(ds->getScope());
 }
 
-DIFile* LLVM_Hs_DIScopeGetFile(DIScope *ds) {
-    return cast_or_null<DIFile>(ds->getFile());
+DIFile* LLVM_Hs_DIScope_GetFile(DIScope *ds) {
+    return ds->getFile();
 }
 
 bool LLVM_Hs_DINamespaceGetExportSymbols(DINamespace *ds) {
@@ -244,6 +259,28 @@ uint32_t LLVM_Hs_DITypeGetAlignInBits(DIType *ds) {
 
 unsigned LLVM_Hs_DITypeGetLine(DIType *ds) {
     return ds->getAlignInBits();
+}
+
+DIType* LLVM_Hs_Get_DIBasicType(LLVMContextRef ctx, unsigned tag, const char *name, uint64_t sizeInBits, uint32_t alignInBits, unsigned encoding) {
+    LLVMContext& c = *unwrap(ctx);
+    return DIBasicType::get(c, tag, MDString::get(c, name), sizeInBits, alignInBits, encoding);
+}
+
+DIFile* LLVM_Hs_Get_DIFile(LLVMContextRef ctx, const char* filename, const char* directory, unsigned checksumKind, const char* checksum) {
+    LLVMContext& c = *unwrap(ctx);
+    return DIFile::get(c, MDString::get(c, filename), MDString::get(c, directory), static_cast<DIFile::ChecksumKind>(checksumKind), MDString::get(c, checksum));
+}
+
+DINode* LLVM_Hs_Get_DISubrange(LLVMContextRef ctx, int64_t count, int64_t lowerBound) {
+    return DISubrange::get(*unwrap(ctx), count, lowerBound);
+}
+
+int64_t LLVM_Hs_DISubrange_GetCount(DISubrange* range) {
+    return range->getCount();
+}
+
+int64_t LLVM_Hs_DISubrange_GetLowerBound(DISubrange* range) {
+    return range->getLowerBound();
 }
 
 unsigned LLVM_Hs_DIBasicTypeGetEncoding(DIBasicType *ds) {
@@ -319,6 +356,65 @@ void LLVM_Hs_GetDISubroutineTypeArray(DISubroutineType *md, DITypeRef *dest) {
 
 unsigned LLVM_Hs_DISubroutineTypeArrayLength(DISubroutineType *a) {
     return a->getTypeArray().size();
+}
+
+// DISubprogram
+
+unsigned LLVM_Hs_DISubprogram_GetLine(DISubprogram* p) {
+    return p->getLine();
+}
+
+unsigned LLVM_Hs_DISubprogram_GetVirtuality(DISubprogram* p) {
+    return p->getVirtuality();
+}
+
+unsigned LLVM_Hs_DISubprogram_GetVirtualIndex(DISubprogram* p) {
+    return p->getVirtualIndex();
+}
+
+unsigned LLVM_Hs_DISubprogram_GetScopeLine(DISubprogram* p) {
+    return p->getScopeLine();
+}
+
+LLVMBool LLVM_Hs_DISubprogram_IsOptimized(DISubprogram* p) {
+    return p->isOptimized();
+}
+
+LLVMBool LLVM_Hs_DISubprogram_IsDefinition(DISubprogram* p) {
+    return p->isDefinition();
+}
+
+// DIExpression
+
+unsigned LLVM_Hs_DIExpression_GetNumElements(DIExpression* e) {
+    return e->getNumElements();
+}
+
+unsigned LLVM_Hs_DIExpression_GetElement(DIExpression* e, unsigned i) {
+    fprintf(stderr, "%p, %d, %d\n", (void*)e, i, e->getNumElements());
+    return e->getElement(i);
+}
+
+// DIVariable
+
+DIScope* LLVM_Hs_DIVariable_GetScope(DIVariable* v) {
+    return v->getScope();
+}
+
+DIFile* LLVM_Hs_DIVariable_GetFile(DIVariable* v) {
+    return v->getFile();
+}
+
+const char* LLVM_Hs_DIVariable_GetName(DIVariable* v) {
+    return v->getName().data();
+}
+
+unsigned LLVM_Hs_DIVariable_GetLine(DIVariable* v) {
+    return v->getLine();
+}
+
+DIType* LLVM_Hs_DIVariable_GetType(DIVariable* v) {
+    return v->getType().resolve();
 }
 
 }

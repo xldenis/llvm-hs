@@ -1,10 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 module LLVM.Test.Metadata where
 
+import LLVM.Prelude
+
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
+import Test.QuickCheck
 
 import LLVM.Test.Support
+
+import Control.Monad.IO.Class
+import Data.ByteString as B (readFile)
+import qualified Data.ByteString.Short as BSS
+import Foreign.Ptr
+import Text.Show.Pretty (pPrint)
 
 import LLVM.AST as A
 import LLVM.AST.Type as A.T
@@ -17,24 +27,94 @@ import LLVM.AST.Global as G
 
 import LLVM.Context
 import LLVM.Module
-
-import Data.ByteString as B (readFile)
+import LLVM.Internal.Coding
+import LLVM.Internal.DecodeAST
+import LLVM.Internal.EncodeAST
+import qualified LLVM.Internal.FFI.PtrHierarchy as FFI
 
 tests = testGroup "Metadata"
   [ globalMetadata
   , namedMetadata
   , nullMetadata
   , cyclicMetadata
-  , diNode
+  , roundtripDIType
+  , roundtripDIFile
+  , roundtripDINode
+  , testFile
   ]
 
+arbitrarySbs :: Gen ShortByteString
+arbitrarySbs = BSS.pack <$> listOf (arbitrary `suchThat` (/= 0))
 
-diNode = testCase "dinodes" $ do
-  fStr <- B.readFile "test/module.ll"
-  withContext $ \context -> do
-    a <- withModuleFromLLVMAssembly' context fStr moduleAST
-    putStrLn (show a)
-    pure ()
+instance Arbitrary Encoding where
+  arbitrary =
+    elements
+      [ AddressEncoding
+      , BooleanEncoding
+      , FloatEncoding
+      , SignedEncoding
+      , SignedCharEncoding
+      , UnsignedEncoding
+      , UnsignedCharEncoding
+      ]
+
+instance Arbitrary ChecksumKind where
+  arbitrary = elements [None, MD5, SHA1]
+
+instance Arbitrary DIType where
+  arbitrary =
+    oneof
+      [ DIBasicType <$> arbitrarySbs <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+      -- TODO: Add DICompositeType, DIDerivedType and DISubroutineType
+      ]
+
+instance Arbitrary DIFile where
+  arbitrary =
+    A.File <$> arbitrarySbs <*> arbitrarySbs <*> arbitrarySbs <*> arbitrary
+
+instance Arbitrary DINode where
+  arbitrary =
+    oneof
+      [ DISubrange <$> arbitrary <*> arbitrary
+      , DIEnumerator <$> arbitrary <*> arbitrarySbs
+      -- TODO: Add missing constructors
+      ]
+
+roundtripDIType :: TestTree
+roundtripDIType = testProperty "roundtrip DIType" $ \diType -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDIType <- encodeM (diType :: DIType)
+    decodedDIType <- liftIO (runDecodeAST (decodeM (encodedDIType :: Ptr FFI.DIType)))
+    pure (decodedDIType === diType)
+
+roundtripDIFile :: TestTree
+roundtripDIFile = testProperty "roundtrip DIFile" $ \diFile -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDIFile <- encodeM (diFile :: DIFile)
+    decodedDIFile <- liftIO (runDecodeAST (decodeM (encodedDIFile :: Ptr FFI.DIFile)))
+    pure (decodedDIFile === diFile)
+
+roundtripDINode :: TestTree
+roundtripDINode = testProperty "roundtrip DINode" $ \diNode -> ioProperty $
+  withContext $ \context -> runEncodeAST context $ do
+    encodedDINode <- encodeM (diNode :: DINode)
+    decodedDINode <- liftIO (runDecodeAST (decodeM (encodedDINode :: Ptr FFI.DINode)))
+    pure (decodedDINode === diNode)
+
+testFile :: TestTree
+testFile = do
+  testGroup "file parsing and decoding"
+    [ testCase "test/module.ll" $ do
+        fStr <- B.readFile "test/module.ll"
+        withContext $ \context -> do
+          a <- withModuleFromLLVMAssembly' context fStr moduleAST
+          pPrint a
+    ,  testCase "test/module_2.ll" $ do
+         fStr <- B.readFile "test/module_2.ll"
+         withContext $ \context -> do
+           a <- withModuleFromLLVMAssembly' context fStr moduleAST
+           pPrint a
+    ]
 
 globalMetadata = testCase "global" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [
@@ -50,7 +130,7 @@ globalMetadata = testCase "global" $ do
               )
              ]
             },
-          MetadataNodeDefinition (MetadataNodeID 0) [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ]
+          MetadataNodeDefinition (MetadataNodeID 0) (MDTuple [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ])
          ]
     let s = "; ModuleID = '<string>'\n\
             \source_filename = \"<string>\"\n\
@@ -65,7 +145,7 @@ globalMetadata = testCase "global" $ do
 namedMetadata = testCase "named" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [
           NamedMetadataDefinition "my-module-metadata" [ MetadataNodeID 0 ],
-          MetadataNodeDefinition (MetadataNodeID 0) [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ]
+          MetadataNodeDefinition (MetadataNodeID 0) (MDTuple [ Just $ MDValue $ ConstantOperand (C.Int 32 1) ])
          ]
     let s = "; ModuleID = '<string>'\n\
             \source_filename = \"<string>\"\n\
@@ -78,7 +158,7 @@ namedMetadata = testCase "named" $ do
 nullMetadata = testCase "null" $ do
     let ast = Module "<string>" "<string>" Nothing Nothing [
           NamedMetadataDefinition "my-module-metadata" [ MetadataNodeID 0 ],
-          MetadataNodeDefinition (MetadataNodeID 0) [ Nothing ]
+          MetadataNodeDefinition (MetadataNodeID 0) (MDTuple [ Nothing ])
          ]
     let s = "; ModuleID = '<string>'\n\
             \source_filename = \"<string>\"\n\
@@ -92,12 +172,12 @@ cyclicMetadata = testGroup "cyclic" [
     testCase "metadata-only" $ do
       let ast = Module "<string>" "<string>" Nothing Nothing [
             NamedMetadataDefinition "my-module-metadata" [MetadataNodeID 0],
-            MetadataNodeDefinition (MetadataNodeID 0) [
-              Just $ MDNode (MetadataNodeReference (MetadataNodeID 1))
-             ],
-            MetadataNodeDefinition (MetadataNodeID 1) [
-              Just $ MDNode (MetadataNodeReference (MetadataNodeID 0))
-             ]
+            MetadataNodeDefinition
+              (MetadataNodeID 0)
+              (MDTuple [Just $ MDNode (MetadataNodeReference (MetadataNodeID 1))]),
+            MetadataNodeDefinition
+              (MetadataNodeID 1)
+              (MDTuple [Just $ MDNode (MetadataNodeReference (MetadataNodeID 0))])
            ]
       let s = "; ModuleID = '<string>'\n\
               \source_filename = \"<string>\"\n\
@@ -120,9 +200,9 @@ cyclicMetadata = testGroup "cyclic" [
                  )
                ]
              },
-            MetadataNodeDefinition (MetadataNodeID 0) [
-              Just $ MDValue $ ConstantOperand (C.GlobalReference (ptr (FunctionType A.T.void [] False)) (Name "foo"))
-             ]
+            MetadataNodeDefinition
+              (MetadataNodeID 0)
+              (MDTuple [Just $ MDValue $ ConstantOperand (C.GlobalReference (ptr (FunctionType A.T.void [] False)) (Name "foo"))])
            ]
       let s = "; ModuleID = '<string>'\n\
               \source_filename = \"<string>\"\n\

@@ -45,13 +45,6 @@ define void @f2() !foo !0 !bar !{!"baz"} !qux !{!2} {
 !8 = distinct !DISubprogram(name: "foo", scope: !9)
 !9 = !DIFile(filename: "path/to/file", directory: "/path/to/dir")
 
-; CHECK: !3 = !DILexicalBlock(scope: !1, file: !2, line: 7, column: 35)
 !10 = !DILexicalBlock(scope: !8, file: !9, line: 7, column: 35)
 
 !11 = !DINamespace(name: "Namespace", scope: !10)
-; !9 = !DILocalVariable(name: "this", arg: 1, scope: !3, file: !2, line: 7,
-;                       type: !3, flags: DIFlagArtificial)
-; !10 = !DILocalVariable(name: "x", arg: 2, scope: !4, file: !2, line: 7,
-;                       type: !3)
-; !11 = !DILocalVariable(name: "y", scope: !5, file: !2, line: 7, type: !3)
-
