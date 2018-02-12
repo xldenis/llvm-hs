@@ -134,6 +134,11 @@ data DIFile
 
 instance ChildOf DIScope DIFile
 
+-- | https://llvm.org/doxygen/classllvm_1_1DICompileUnit.html
+data DICompileUnit
+
+instance ChildOf DIScope DICompileUnit
+
 -- | https://llvm.org/doxygen/classllvm_1_1DIType.html
 data DIType
 

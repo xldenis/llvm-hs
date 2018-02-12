@@ -2,7 +2,8 @@
   MultiParamTypeClasses,
   NamedFieldPuns,
   OverloadedStrings,
-  QuasiQuotes
+  QuasiQuotes,
+  RecordWildCards
   #-}
 module LLVM.Internal.Operand where
 
@@ -108,11 +109,13 @@ instance EncodeM EncodeAST A.DINode (Ptr FFI.DINode) where
     name <- encodeM nodeName
     Context c <- gets encodeStateContext
     liftIO (FFI.getDIEnumerator c nodeValue name)
+  encodeM (A.DIScope s) = do
+    ptr <- encodeM s
+    pure (FFI.upCast (ptr :: Ptr FFI.DIScope))
 
 instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
   decodeM p = do
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast p)
-
     case sId of
       [mdSubclassIdP|DINamespace|] -> do
         scope <- decodeM =<< liftIO (FFI.getScopeScope p)
@@ -132,25 +135,76 @@ instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
       [mdSubclassIdP|DISubroutineType|] -> A.DIType <$> decodeM (castPtr p :: Ptr FFI.DIType)
 
       [mdSubclassIdP|DICompileUnit|] -> do
-        file <- decodeM =<< liftIO (FFI.getScopeFile p)
-        pure A.DICompileUnit
-          { A.scopeLanguage = 0
-          , A.scopeFile = file
-          , A.scopeProducer = ""
-          , A.scopeOptimized = False
-          , A.scopeFlags = ""
-          , A.scopeRuntimeVersion = 0
-          , A.scopeDebugFileName = ""
-          , A.scopeEmissionKind = 0
-          , A.scopeEnumTypes = Nothing
-          , A.scopeRetainedTypes = Nothing
-          , A.scopeGlobalVariables = Nothing
-          , A.scopeImportedEntities = Nothing
-          , A.scopeMacros = Nothing
-          , A.scopeDWOId = 0
-          }
+        diCompileUnit <- decodeM (castPtr p :: Ptr FFI.DICompileUnit)
+        pure (A.DICompileUnit diCompileUnit)
       [mdSubclassIdP|DIModule|]      -> fail "DIModule"
       _ -> fail "Not a valid DIScope subclass ID"
+
+instance DecodeM DecodeAST A.DICompileUnit (Ptr FFI.DICompileUnit) where
+  decodeM p = do
+    language <- decodeM =<< liftIO (FFI.getDICompileUnitLanguage p)
+    file <- decodeM =<< liftIO (FFI.getScopeFile (FFI.upCast p))
+    producer <- decodeM =<< liftIO (FFI.getDICompileUnitProducer p)
+    optimized <- decodeM =<< liftIO (FFI.getDICompileUnitOptimized p)
+    flags <- decodeM =<< liftIO (FFI.getDICompileUnitFlags p)
+    runtimeVersion <- decodeM =<< liftIO (FFI.getDICompileUnitRuntimeVersion p)
+    splitDebugFilename <- decodeM =<< liftIO (FFI.getDICompileUnitSplitDebugFilename p)
+    emissionKind <- decodeM =<< liftIO (FFI.getDICompileUnitEmissionKind p)
+    dwoid <- decodeM =<< liftIO (FFI.getDICompileUnitDWOId p)
+    splitDebugInlining <- decodeM =<< liftIO (FFI.getDICompileUnitSplitDebugInlining p)
+    debugInfoForProfiling <- decodeM =<< liftIO (FFI.getDICompileUnitDebugInfoForProfiling p)
+    pure A.CompileUnit
+      { A.cuLanguage = language
+      , A.cuFile = file
+      , A.cuProducer = producer
+      , A.cuOptimized = optimized
+      , A.cuFlags = flags
+      , A.cuRuntimeVersion = runtimeVersion
+      , A.cuSplitDebugFileName = splitDebugFilename
+      , A.cuEmissionKind = emissionKind
+      , A.cuEnums = Nothing
+      , A.cuRetainedTypes = Nothing
+      , A.cuGlobals = Nothing
+      , A.cuImports = Nothing
+      , A.cuMacros = Nothing
+      , A.cuDWOId = dwoid
+      , A.cuSplitDebugInlining = splitDebugInlining
+      , A.cuDebugInfoForProfiling = debugInfoForProfiling
+      }
+
+instance EncodeM EncodeAST A.DICompileUnit (Ptr FFI.DICompileUnit) where
+  encodeM (A.CompileUnit {..}) = do
+    language <- encodeM cuLanguage
+    file <- encodeM cuFile
+    producer <- encodeM cuProducer
+    optimized <- encodeM cuOptimized
+    flags <- encodeM cuFlags
+    runtimeVersion <- encodeM cuRuntimeVersion
+    debugFileName <- encodeM cuSplitDebugFileName
+    emissionKind <- encodeM cuEmissionKind
+    enums <- encodeM cuEnums
+    retainedTypes <- encodeM cuRetainedTypes
+    globals <- encodeM cuGlobals
+    imports <- encodeM cuImports
+    macros <- encodeM cuMacros
+    dwoid <- encodeM cuDWOId
+    splitDebugInlining <- encodeM cuSplitDebugInlining
+    debugInfoForProfiling <- encodeM cuDebugInfoForProfiling
+    Context c <- gets encodeStateContext
+    liftIO $ FFI.getDICompileUnit
+      c
+      language file producer optimized flags
+      runtimeVersion debugFileName emissionKind (FFI.upCast (enums :: Ptr FFI.MDNode)) (FFI.upCast (retainedTypes :: Ptr FFI.MDNode))
+      (FFI.upCast (globals :: Ptr FFI.MDNode)) (FFI.upCast (imports :: Ptr FFI.MDNode)) (FFI.upCast (macros :: Ptr FFI.MDNode)) dwoid splitDebugInlining
+      debugInfoForProfiling
+
+instance EncodeM EncodeAST A.DIScope (Ptr FFI.DIScope) where
+  encodeM (A.DIFile f) = do
+    ptr <- encodeM f
+    pure (FFI.upCast (ptr :: Ptr FFI.DIFile))
+  encodeM (A.DICompileUnit cu) = do
+    ptr <- encodeM cu
+    pure (FFI.upCast (ptr :: Ptr FFI.DICompileUnit))
 
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
   decodeM diF = do
@@ -431,11 +485,15 @@ instance EncodeM EncodeAST A.CallableOperand (Ptr FFI.Value) where
   encodeM (Left i) = (FFI.upCast :: Ptr FFI.InlineAsm -> Ptr FFI.Value) <$> encodeM i
 
 instance EncodeM EncodeAST A.MDNode (Ptr FFI.MDNode) where
+  encodeM (A.MetadataNodeReference n) = referMDNode n
   encodeM (A.MDTuple ops) = scopeAnyCont $ do
     Context c <- gets encodeStateContext
     ops <- encodeM ops
     liftIO $ FFI.createMDNodeInContext c ops
-  encodeM (A.MetadataNodeReference n) = referMDNode n
+  encodeM (A.DINode n) = do
+    ptr <- encodeM n
+    pure (FFI.upCast (ptr :: Ptr FFI.DINode))
+  encodeM e = fail (show e)
 
 instance DecodeM DecodeAST [Maybe A.Metadata] (Ptr FFI.MDNode) where
   decodeM p = scopeAnyCont $ do
@@ -485,6 +543,9 @@ instance DecodeM DecodeAST A.MDNode (Ptr FFI.MDNode) where
 instance (DecodeM DecodeAST a (Ptr b), FFI.DescendentOf FFI.MDNode b) => DecodeM DecodeAST (A.MDRef a) (Ptr b) where
   decodeM p = scopeAnyCont $
     A.MDRef <$> getMetadataNodeID (FFI.upCast p)
+
+instance (EncodeM EncodeAST a (Ptr b), FFI.DescendentOf FFI.MDNode b) => EncodeM EncodeAST (A.MDRef a) (Ptr b) where
+  encodeM (A.MDRef id) = castPtr <$> referMDNode id
 
 getMetadataDefinitions :: DecodeAST [A.Definition]
 getMetadataDefinitions = fix $ \continue -> do

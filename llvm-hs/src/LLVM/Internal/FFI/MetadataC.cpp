@@ -417,5 +417,64 @@ DIType* LLVM_Hs_DIVariable_GetType(DIVariable* v) {
     return v->getType().resolve();
 }
 
+// DICompileUnit
+DICompileUnit* LLVM_Hs_Get_DICompileUnit
+  (LLVMContextRef ctx,
+   unsigned sourceLanguage, DIFile* file, const char* producer, LLVMBool isOptimized, const char* flags,
+   unsigned runtimeVersion, const char* splitDebugFilename, unsigned emissionKind, Metadata* enumTypes, Metadata* retainedTypes,
+   Metadata* globalVariables, Metadata* importedEntities, Metadata* macros, uint64_t dwoid, LLVMBool splitDebugInlining,
+   LLVMBool debugInfoForProfiling) {
+    LLVMContext &c = *unwrap(ctx);
+    return DICompileUnit::getDistinct
+        (c,
+         sourceLanguage, file, MDString::get(c, producer), isOptimized, MDString::get(c, flags),
+         runtimeVersion, MDString::get(c, splitDebugFilename), emissionKind, enumTypes, retainedTypes,
+         globalVariables, importedEntities, macros, dwoid, splitDebugInlining,
+         debugInfoForProfiling);
+}
+
+unsigned LLVM_Hs_DICompileUnit_GetLanguage(DICompileUnit* cu) {
+    return cu->getSourceLanguage();
+}
+
+LLVMBool LLVM_Hs_DICompileUnit_GetSplitDebugInlining(DICompileUnit* cu) {
+    return cu->getSplitDebugInlining();
+}
+
+LLVMBool LLVM_Hs_DICompileUnit_GetDebugInfoForProfiling(DICompileUnit* cu) {
+    return cu->getDebugInfoForProfiling();
+}
+
+LLVMBool LLVM_Hs_DICompileUnit_GetOptimized(DICompileUnit* cu) {
+    return cu->isOptimized();
+}
+
+unsigned LLVM_Hs_DICompileUnit_GetRuntimeVersion(DICompileUnit* cu) {
+    return cu->getRuntimeVersion();
+}
+
+const char* LLVM_Hs_DICompileUnit_GetProducer(DICompileUnit* cu) {
+    const char* producer = cu->getProducer().data();
+    return producer ? producer : "";
+}
+
+const char* LLVM_Hs_DICompileUnit_GetFlags(DICompileUnit* cu) {
+    const char* flags = cu->getFlags().data();
+    return flags ? flags : "";
+}
+
+const char* LLVM_Hs_DICompileUnit_GetSplitDebugFilename(DICompileUnit* cu) {
+    const char* filename = cu->getSplitDebugFilename().data();
+    return filename ? filename : "";
+}
+
+unsigned LLVM_Hs_DICompileUnit_GetEmissionKind(DICompileUnit* cu) {
+    return cu->getEmissionKind();
+}
+
+uint64_t LLVM_Hs_DICompileUnit_GetDWOId(DICompileUnit* cu) {
+    return cu->getDWOId();
+}
+
 }
 

@@ -290,3 +290,43 @@ foreign import ccall unsafe "LLVM_Hs_DIVariable_GetLine" getDIVariableLine ::
 
 foreign import ccall unsafe "LLVM_Hs_DIVariable_GetType" getDIVariableType ::
   Ptr DIVariable -> IO (Ptr DIType)
+
+-- DICompileUnit
+
+foreign import ccall unsafe "LLVM_Hs_Get_DICompileUnit" getDICompileUnit ::
+  Ptr Context ->
+  CUInt -> Ptr DIFile -> CString -> LLVMBool -> CString ->
+  CUInt -> CString -> CUInt -> Ptr Metadata -> Ptr Metadata ->
+  Ptr Metadata -> Ptr Metadata -> Ptr Metadata -> Word64 -> LLVMBool ->
+  LLVMBool ->
+  IO (Ptr DICompileUnit)
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetLanguage" getDICompileUnitLanguage ::
+  Ptr DICompileUnit -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetSplitDebugInlining" getDICompileUnitSplitDebugInlining ::
+  Ptr DICompileUnit -> IO LLVMBool
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetDebugInfoForProfiling" getDICompileUnitDebugInfoForProfiling ::
+  Ptr DICompileUnit -> IO LLVMBool
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetOptimized" getDICompileUnitOptimized ::
+  Ptr DICompileUnit -> IO LLVMBool
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetRuntimeVersion" getDICompileUnitRuntimeVersion ::
+  Ptr DICompileUnit -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetProducer" getDICompileUnitProducer ::
+  Ptr DICompileUnit -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetFlags" getDICompileUnitFlags ::
+  Ptr DICompileUnit -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetSplitDebugFilename" getDICompileUnitSplitDebugFilename ::
+  Ptr DICompileUnit -> IO CString
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetEmissionKind" getDICompileUnitEmissionKind ::
+  Ptr DICompileUnit -> IO CUInt
+
+foreign import ccall unsafe "LLVM_Hs_DICompileUnit_GetDWOId" getDICompileUnitDWOId ::
+  Ptr DICompileUnit -> IO Word64

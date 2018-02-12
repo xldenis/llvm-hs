@@ -105,22 +105,7 @@ data DINode
 
 data DIScope
 -- | https://llvm.org/docs/LangRef.html#dicompileunit
-  = DICompileUnit
-    { scopeLanguage :: Word32
-    , scopeFile :: MDRef DIFile
-    , scopeProducer :: ShortByteString
-    , scopeOptimized :: Bool
-    , scopeFlags :: ShortByteString
-    , scopeRuntimeVersion :: Word32
-    , scopeDebugFileName :: ShortByteString
-    , scopeEmissionKind :: Word32
-    , scopeEnumTypes :: Maybe (MDRef MDNode)
-    , scopeRetainedTypes :: Maybe (MDRef MDNode)
-    , scopeGlobalVariables :: Maybe (MDRef MDNode)
-    , scopeImportedEntities :: Maybe (MDRef MDNode)
-    , scopeMacros :: Maybe (MDRef MDNode)
-    , scopeDWOId :: Word64
-    }
+  = DICompileUnit DICompileUnit
   | DIFile DIFile
   | DILocalScope DILocalScope
   | DIModule
@@ -133,6 +118,26 @@ data DIScope
   | DINamespace { scopeName :: ShortByteString, scopeScope :: MDRef DIScope, scopeExportSymbols :: Bool }
   | DIType DIType
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+
+-- | https://llvm.org/docs/LangRef.html#dicompileunit
+data DICompileUnit = CompileUnit
+  { cuLanguage :: Word32
+  , cuFile :: MDRef DIFile
+  , cuProducer :: ShortByteString
+  , cuOptimized :: Bool
+  , cuFlags :: ShortByteString
+  , cuRuntimeVersion :: Word32
+  , cuSplitDebugFileName :: ShortByteString
+  , cuEmissionKind :: Word32
+  , cuEnums :: Maybe (MDRef MDNode)
+  , cuRetainedTypes :: Maybe (MDRef MDNode)
+  , cuGlobals :: Maybe (MDRef MDNode)
+  , cuImports :: Maybe (MDRef MDNode)
+  , cuMacros :: Maybe (MDRef MDNode)
+  , cuDWOId :: Word64
+  , cuSplitDebugInlining :: Bool
+  , cuDebugInfoForProfiling :: Bool
+  } deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 -- | https://llvm.org/docs/LangRef.html#difile
 data DIFile = File

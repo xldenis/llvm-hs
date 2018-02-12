@@ -40,6 +40,7 @@ tests = testGroup "Metadata"
   , roundtripDIType
   , roundtripDIFile
   , roundtripDINode
+  , roundtripDICompileUnit
   , testFile
   ]
 
@@ -100,6 +101,42 @@ roundtripDINode = testProperty "roundtrip DINode" $ \diNode -> ioProperty $
     encodedDINode <- encodeM (diNode :: DINode)
     decodedDINode <- liftIO (runDecodeAST (decodeM (encodedDINode :: Ptr FFI.DINode)))
     pure (decodedDINode === diNode)
+
+roundtripDICompileUnit :: TestTree
+roundtripDICompileUnit = testProperty "roundtrip DICompileUnit" $ \diFile ->
+  forAll (genDICompileUnit (MDRef fileID)) $ \diCompileUnit -> ioProperty $
+    withContext $ \context -> runEncodeAST context $ do
+      let mod = defaultModule
+            { moduleDefinitions =
+                [ NamedMetadataDefinition "dummy" [cuID]
+                , MetadataNodeDefinition cuID (DINode (DIScope (DICompileUnit diCompileUnit)))
+                , MetadataNodeDefinition fileID (DINode (DIScope (DIFile diFile)))
+                ]
+            }
+      mod' <- liftIO (withModuleFromAST context mod moduleAST)
+      pure (mod' === mod)
+  where fileID = MetadataNodeID 1
+        cuID = MetadataNodeID 0
+
+genDICompileUnit :: MDRef DIFile -> Gen DICompileUnit
+genDICompileUnit file =
+  CompileUnit
+    <$> arbitrary
+    <*> pure file
+    <*> arbitrarySbs
+    <*> arbitrary
+    <*> arbitrarySbs
+    <*> arbitrary
+    <*> arbitrarySbs
+    <*> arbitrary
+    <*> pure Nothing
+    <*> pure Nothing
+    <*> pure Nothing
+    <*> pure Nothing
+    <*> pure Nothing
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
 
 testFile :: TestTree
 testFile = do
