@@ -112,6 +112,9 @@ instance EncodeM EncodeAST A.DINode (Ptr FFI.DINode) where
   encodeM (A.DIScope s) = do
     ptr <- encodeM s
     pure (FFI.upCast (ptr :: Ptr FFI.DIScope))
+  encodeM (A.DIVariable v) = do
+    ptr <- encodeM v
+    pure (FFI.upCast (ptr :: Ptr FFI.DIVariable))
 
 instance DecodeM DecodeAST A.DIScope (Ptr FFI.DIScope) where
   decodeM p = do
@@ -205,6 +208,9 @@ instance EncodeM EncodeAST A.DIScope (Ptr FFI.DIScope) where
   encodeM (A.DICompileUnit cu) = do
     ptr <- encodeM cu
     pure (FFI.upCast (ptr :: Ptr FFI.DICompileUnit))
+  encodeM (A.DIType t) = do
+    ptr <- encodeM t
+    pure (FFI.upCast (ptr :: Ptr FFI.DIType))
 
 instance DecodeM DecodeAST A.DIFile (Ptr FFI.DIFile) where
   decodeM diF = do
@@ -370,25 +376,58 @@ instance DecodeM DecodeAST A.DIType (Ptr FFI.DIType) where
           , A.typeTypeArray = arr
           }
 
+instance EncodeM EncodeAST A.DIVariable (Ptr FFI.DIVariable) where
+  encodeM (A.DILocalVariable {..}) = do
+    name <- encodeM variableName
+    scope <- encodeM variableScope
+    file <- encodeM variableFile
+    line <- encodeM variableLine
+    type' <- encodeM variableType
+    let arg = fromIntegral variableArg
+        flags = 0
+    Context c <- gets encodeStateContext
+    FFI.upCast <$> liftIO (FFI.getDILocalVariable c scope name file line type' arg flags variableAlignInBits)
+
 instance DecodeM DecodeAST A.DIVariable (Ptr FFI.DIVariable) where
   decodeM p = do
     sId <- liftIO $ FFI.getMetadataClassId (FFI.upCast p)
     case sId of
-      [mdSubclassIdP|DIGlobalVariable|] -> fail "DIGlobalVariable"
-      [mdSubclassIdP|DILocalVariable|] -> do
-        file <- decodeM =<< liftIO (FFI.getDIVariableFile p)
-        scope <- decodeM =<< liftIO (FFI.getDIVariableScope p)
+      [mdSubclassIdP|DIGlobalVariable|] -> do
         name <- decodeM =<< liftIO (FFI.getDIVariableName p)
+        scope <- decodeM =<< liftIO (FFI.getDIVariableScope p)
+        file <- decodeM =<< liftIO (FFI.getDIVariableFile p)
         line <- decodeM =<< liftIO (FFI.getDIVariableLine p)
         type' <- decodeM =<< liftIO (FFI.getDIVariableType p)
+        align <- liftIO (FFI.getDIVariableAlignInBits p)
+        pure A.DIGlobalVariable
+          { A.variableName = name
+          , A.variableScope = scope
+          , A.variableFile = file
+          , A.variableLine = line
+          , A.variableType = type'
+          , A.variableLinkageName = ""
+          , A.variableLocal = False
+          , A.variableDefinition = False
+          , A.staticDataMemberDeclaration = Nothing
+          , A.variableAlignInBits = align
+          }
+      [mdSubclassIdP|DILocalVariable|] -> do
+        name <- decodeM =<< liftIO (FFI.getDIVariableName p)
+        scope <- decodeM =<< liftIO (FFI.getDIVariableScope p)
+        file <- decodeM =<< liftIO (FFI.getDIVariableFile p)
+        line <- decodeM =<< liftIO (FFI.getDIVariableLine p)
+        type' <- decodeM =<< liftIO (FFI.getDIVariableType p)
+        arg <- fromIntegral <$> liftIO (FFI.getDILocalVariableArg (castPtr p))
+        align <- liftIO (FFI.getDIVariableAlignInBits p)
         pure A.DILocalVariable
           { A.variableFile = file
           , A.variableScope = scope
           , A.variableName = name
           , A.variableLine = line
-          , A.variableArg = 0
+          , A.variableArg = arg
           , A.variableFlags = []
           , A.variableType = type'
+          , A.variableAlignInBits = align
           }
 
 instance DecodeM DecodeAST A.DITemplateParameter (Ptr FFI.DITemplateParameter) where

@@ -291,6 +291,19 @@ foreign import ccall unsafe "LLVM_Hs_DIVariable_GetLine" getDIVariableLine ::
 foreign import ccall unsafe "LLVM_Hs_DIVariable_GetType" getDIVariableType ::
   Ptr DIVariable -> IO (Ptr DIType)
 
+foreign import ccall unsafe "LLVM_Hs_DIVariable_GetAlignInBits" getDIVariableAlignInBits ::
+  Ptr DIVariable -> IO Word32
+
+-- DILocalVariable
+
+foreign import ccall unsafe "LLVM_Hs_Get_DILocalVariable" getDILocalVariable ::
+  Ptr Context ->
+  Ptr DIScope -> CString -> Ptr DIFile -> CUInt -> Ptr DIType -> CUInt -> Word32 -> Word32 ->
+  IO (Ptr DILocalVariable)
+
+foreign import ccall unsafe "LLVM_Hs_DILocalVariable_GetArg" getDILocalVariableArg ::
+  Ptr DILocalVariable -> IO CUInt
+
 -- DICompileUnit
 
 foreign import ccall unsafe "LLVM_Hs_Get_DICompileUnit" getDICompileUnit ::

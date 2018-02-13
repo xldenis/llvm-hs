@@ -292,25 +292,26 @@ data DILexicalBlockBase
 data DIVariable
   -- | https://llvm.org/docs/LangRef.html#diglobalvariable
   = DIGlobalVariable
-    { variableFile :: Maybe (MDRef DIFile)
-    , variableScope :: MDRef DIScope
-    , variableName :: ShortByteString
-    , variableLinkageName :: Name
+    { variableName :: ShortByteString
+    , variableScope :: Maybe (MDRef DIScope)
+    , variableFile :: Maybe (MDRef DIFile)
     , variableLine :: Word32
     , variableType :: Maybe (MDRef DIType)
+    , variableLinkageName :: Name
     , variableLocal :: Bool
     , variableDefinition :: Bool
-    , staticDataMemberDeclaration :: MDNode
+    , staticDataMemberDeclaration :: Maybe (MDRef MDNode)
     , variableAlignInBits :: Word32
     }
   | DILocalVariable
-    { variableFile :: Maybe (MDRef DIFile)
-    , variableScope :: MDRef DIScope
-    , variableName :: ShortByteString
+    { variableName :: ShortByteString
+    , variableScope :: Maybe (MDRef DIScope) -- ^ TODO: Technically this is not optional but we need the same type as for 'DIGlobalVariable'
+    , variableFile :: Maybe (MDRef DIFile)
     , variableLine :: Word32
-    , variableArg :: Word32
-    , variableFlags :: [DIFlag]
     , variableType :: Maybe (MDRef DIType)
+    , variableFlags :: [DIFlag]
+    , variableArg :: Word16
+    , variableAlignInBits :: Word32
     }
   deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 

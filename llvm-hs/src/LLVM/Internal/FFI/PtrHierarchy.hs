@@ -119,6 +119,16 @@ data DIVariable
 
 instance ChildOf DINode DIVariable
 
+-- | https://llvm.org/doxygen/classllvm_1_1DILocalVariable.html
+data DILocalVariable
+
+instance ChildOf DIVariable DILocalVariable
+
+-- | https://llvm.org/doxygen/classllvm_1_1DIGlobalVariable.html
+data DIGlobalVariable
+
+instance ChildOf DIVariable DIGlobalVariable
+
 -- | https://llvm.org/doxygen/classllvm_1_1DITemplateParameter.html
 data DITemplateParameter
 

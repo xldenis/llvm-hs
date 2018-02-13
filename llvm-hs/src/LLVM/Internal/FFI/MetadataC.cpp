@@ -417,6 +417,25 @@ DIType* LLVM_Hs_DIVariable_GetType(DIVariable* v) {
     return v->getType().resolve();
 }
 
+uint32_t LLVM_Hs_DIVariable_GetAlignInBits(DIVariable* v) {
+    return v->getAlignInBits();
+}
+
+// DILocalVariable
+
+DILocalVariable* LLVM_Hs_Get_DILocalVariable(LLVMContextRef ctx,
+                                             DIScope* scope, const char* name, DIFile* file,
+                                             unsigned line, DIType* type, unsigned arg,
+                                             uint32_t flags, uint32_t alignInBits) {
+    LLVMContext &c = *unwrap(ctx);
+    return DILocalVariable::get(c, static_cast<DILocalScope*>(scope), MDString::get(c, name), file, line, type,
+                                arg, static_cast<DINode::DIFlags>(flags), alignInBits);
+}
+
+unsigned LLVM_Hs_DILocalVariable_GetArg(DILocalVariable* v) {
+    return v->getArg();
+}
+
 // DICompileUnit
 DICompileUnit* LLVM_Hs_Get_DICompileUnit
   (LLVMContextRef ctx,
@@ -475,6 +494,8 @@ unsigned LLVM_Hs_DICompileUnit_GetEmissionKind(DICompileUnit* cu) {
 uint64_t LLVM_Hs_DICompileUnit_GetDWOId(DICompileUnit* cu) {
     return cu->getDWOId();
 }
+
+
 
 }
 

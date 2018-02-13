@@ -41,6 +41,7 @@ tests = testGroup "Metadata"
   , roundtripDIFile
   , roundtripDINode
   , roundtripDICompileUnit
+  , roundtripDIVariable
   , testFile
   ]
 
@@ -137,6 +138,38 @@ genDICompileUnit file =
     <*> arbitrary
     <*> arbitrary
     <*> arbitrary
+
+roundtripDIVariable :: TestTree
+roundtripDIVariable = testProperty "roundtrip DIVariable" $ \diFile diType ->
+  forAll (genDIVariable Nothing (Just (MDRef fileID)) (Just (MDRef typeID))) $ \diVariable -> ioProperty $
+    withContext $ \context -> runEncodeAST context $ do
+      let mod = defaultModule
+            { moduleDefinitions =
+                [ NamedMetadataDefinition "dummy" [varID]
+                , MetadataNodeDefinition varID (DINode (DIVariable diVariable))
+                , MetadataNodeDefinition fileID (DINode (DIScope (DIFile diFile)))
+                , MetadataNodeDefinition typeID (DINode (DIScope (DIType diType)))
+                ]
+            }
+      mod' <- liftIO (withModuleFromAST context mod moduleAST)
+      pure (mod' === mod)
+  where varID = MetadataNodeID 0
+        fileID = MetadataNodeID 1
+        typeID = MetadataNodeID 2
+
+genDIVariable :: Maybe (MDRef DIScope) -> Maybe (MDRef DIFile) -> Maybe (MDRef DIType) -> Gen DIVariable
+genDIVariable diScope diFile diType =
+  oneof
+   [ DILocalVariable
+       <$> arbitrarySbs
+       <*> pure diScope
+       <*> pure diFile
+       <*> arbitrary
+       <*> pure diType
+       <*> pure []
+       <*> arbitrary
+       <*> arbitrary
+   ]
 
 testFile :: TestTree
 testFile = do
